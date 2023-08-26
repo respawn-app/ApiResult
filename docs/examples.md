@@ -24,7 +24,7 @@ inline fun <T> ApiResult<T>.log() = onSuccess {
 }
 
 
-PublishGameWorker : CoroutineWorker(context, workerParams) {
+class PublishGameWorker : CoroutineWorker(context, workerParams) {
 
     // we started with an empty result to defer the computations until checks pass
     override suspend fun doWork() = ApiResult()

@@ -1,4 +1,11 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "unused", "TooManyFunctions", "FunctionName", "NOTHING_TO_INLINE")
+@file:Suppress(
+    "KotlinRedundantDiagnosticSuppress",
+    "MemberVisibilityCanBePrivate",
+    "unused",
+    "TooManyFunctions",
+    "FunctionName",
+    "NOTHING_TO_INLINE"
+)
 
 package pro.respawn.apiresult
 

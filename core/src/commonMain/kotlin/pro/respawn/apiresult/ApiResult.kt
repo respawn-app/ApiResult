@@ -7,11 +7,11 @@
     "ThrowingExceptionsWithoutMessageOrCause"
 )
 
-package pro.respawn.kmmutils.apiresult
+package pro.respawn.apiresult
 
-import pro.respawn.kmmutils.apiresult.ApiResult.Error
-import pro.respawn.kmmutils.apiresult.ApiResult.Loading
-import pro.respawn.kmmutils.apiresult.ApiResult.Success
+import pro.respawn.apiresult.ApiResult.Error
+import pro.respawn.apiresult.ApiResult.Loading
+import pro.respawn.apiresult.ApiResult.Success
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract

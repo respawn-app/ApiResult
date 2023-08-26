@@ -1,9 +1,9 @@
 @file:Suppress("MemberVisibilityCanBePrivate", "unused", "TooManyFunctions", "FunctionName", "NOTHING_TO_INLINE")
 
-package pro.respawn.kmmutils.apiresult
+package pro.respawn.apiresult
 
-import pro.respawn.kmmutils.apiresult.ApiResult.Error
-import pro.respawn.kmmutils.apiresult.ApiResult.Success
+import pro.respawn.apiresult.ApiResult.Error
+import pro.respawn.apiresult.ApiResult.Success
 import kotlin.jvm.JvmName
 
 /**

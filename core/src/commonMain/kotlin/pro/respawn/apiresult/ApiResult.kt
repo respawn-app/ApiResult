@@ -1,10 +1,11 @@
 @file:OptIn(ExperimentalContracts::class)
 @file:Suppress(
+    "KotlinRedundantDiagnosticSuppress",
     "MemberVisibilityCanBePrivate",
     "unused",
     "NOTHING_TO_INLINE",
     "TooManyFunctions",
-    "ThrowingExceptionsWithoutMessageOrCause"
+    "ThrowingExceptionsWithoutMessageOrCause",
 )
 
 package pro.respawn.apiresult
@@ -30,8 +31,27 @@ import kotlin.jvm.JvmName
  */
 public sealed interface ApiResult<out T> {
 
-    public operator fun component1(): T?
-    public operator fun component2(): Exception?
+    /**
+     * Get the [Success] component of this result or null
+     *
+     * Use like:
+     * ```
+     * val (success, failure) = ApiResult { ... }
+     * ```
+     * @see orNull
+     */
+    public operator fun component1(): T? = (this as? Success<T>)?.result
+
+    /**
+     * Get the [Error] component of this result or null
+     *
+     * Use like:
+     * ```
+     * val (success, failure) = ApiResult { ... }
+     * ```
+     * @see exceptionOrNull
+     */
+    public operator fun component2(): Exception? = exceptionOrNull()
 
     /**
      * Bang operator returns the result or throws if it is an [Error] or [Loading]
@@ -44,9 +64,6 @@ public sealed interface ApiResult<out T> {
      */
     public data object Loading : ApiResult<Nothing> {
 
-        override fun component1(): Nothing? = null
-        override fun component2(): Nothing? = null
-
         override fun toString(): String = "ApiResult.Loading"
     }
 
@@ -57,8 +74,6 @@ public sealed interface ApiResult<out T> {
     @JvmInline
     public value class Success<out T>(public val result: T) : ApiResult<T> {
 
-        override fun component1(): T? = result
-        override fun component2(): Exception? = null
         override fun toString(): String = "ApiResult.Success: $result"
     }
 
@@ -69,8 +84,6 @@ public sealed interface ApiResult<out T> {
     @JvmInline
     public value class Error(public val e: Exception) : ApiResult<Nothing> {
 
-        override fun component1(): Nothing? = null
-        override fun component2(): Exception? = null
         override fun toString(): String = "ApiResult.Error: message=$message and cause: $e"
     }
 
@@ -275,7 +288,7 @@ public inline fun <T> ApiResult<T>.errorUnless(
 
 /**
  * Makes [this] an [Error] if [predicate] returns true
- * @see errorIfNot
+ * @see errorUnless
  */
 public inline fun <T> ApiResult<T>.errorIf(
     exception: () -> Exception = { ConditionNotSatisfiedException() },
@@ -327,13 +340,16 @@ public inline infix fun <T, R> ApiResult<T>.map(block: (T) -> R): ApiResult<R> {
     }
 }
 
-public inline fun <T, R> ApiResult<T>.mapOrDefault(default: () -> R, block: (T) -> R): R {
+/**
+ * Map the [Success] result using [transform], and if the result is not a success, return [default]
+ */
+public inline fun <T, R> ApiResult<T>.mapOrDefault(default: () -> R, transform: (T) -> R): R {
     contract {
-        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+        callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
         callsInPlace(default, InvocationKind.AT_MOST_ONCE)
     }
     return when (this) {
-        is Success -> block(result)
+        is Success -> transform(result)
         else -> default()
     }
 }
@@ -354,7 +370,7 @@ public inline fun <T, R> ApiResult<T>.mapEither(
  * Maps [Loading] to a [Success], not affecting other states.
  * @see mapError
  * @see map
- * @see mapWrapping
+ * @see tryMap
  */
 public inline infix fun <T, R : T> ApiResult<T>.mapLoading(block: () -> R): ApiResult<T> {
     contract {
@@ -405,7 +421,7 @@ public inline infix fun <T, R> ApiResult<T>.tryMap(block: (T) -> R): ApiResult<R
 
 /**
  * Make this result an [Error] if [Success] value was null.
- * @see errorIfNot
+ * @see errorUnless
  * @see errorIf
  * @see errorIfEmpty
  */

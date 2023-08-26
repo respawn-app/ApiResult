@@ -21,7 +21,7 @@ internal fun MavenPublication.configureVersion(release: Boolean) {
 internal fun MavenPublication.configurePom() = pom {
     name.set(Config.artifact)
     description.set("A simple, classic KMM MVI implementation based on coroutines")
-    url.set("https://github.com/respawn-app/flowMVI")
+    url.set("https://github.com/respawn-app/ApiResult")
 
     licenses {
         license {
@@ -41,7 +41,7 @@ internal fun MavenPublication.configurePom() = pom {
         }
     }
     scm {
-        url.set("https://github.com/respawn-app/flowMVI.git")
+        url.set("https://github.com/respawn-app/ApiResult.git")
     }
 }
 

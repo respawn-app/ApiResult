@@ -1,8 +1,5 @@
 # Get started with ApiResult
 
-Browse
-code: [ApiResult](https://github.com/respawn-app/kmmutils/tree/master/apiresult/src/commonMain/kotlin/pro/respawn/kmmutils/apiresult)
-
 ApiResult is a class that wraps the result of a computation.
 Similar to monads, it has 2 main and 1 additional state:
 

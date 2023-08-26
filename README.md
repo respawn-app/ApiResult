@@ -1,11 +1,13 @@
 # ApiResult
 
-[![CI](https://github.com/respawn-app/FlowMVI/actions/workflows/ci.yml/badge.svg)](https://github.com/respawn-app/ApiResult/actions/workflows/ci.yml)
+[![CI](https://github.com/respawn-app/ApiResult/actions/workflows/ci.yml/badge.svg)](https://github.
+com/respawn-app/ApiResult/actions/workflows/ci.yml)
 ![License](https://img.shields.io/github/license/respawn-app/ApiResult)
 ![GitHub last commit](https://img.shields.io/github/last-commit/respawn-app/ApiResult)
 ![Issues](https://img.shields.io/github/issues/respawn-app/ApiResult)
 ![GitHub top language](https://img.shields.io/github/languages/top/respawn-app/ApiResult)
-[![CodeFactor](https://www.codefactor.io/repository/github/respawn-app/flowMVI/badge)](https://www.codefactor.io/repository/github/respawn-app/ApiResult)
+[![CodeFactor](https://www.codefactor.io/repository/github/respawn-app/ApiResult/badge)](https://www.codefactor.
+io/repository/github/respawn-app/ApiResult)
 [![AndroidWeekly #556](https://androidweekly.net/issues/issue-556/badge)](https://androidweekly.net/issues/issue-556/)
 
 ApiResult is a Kotlin Multiplatform declarative error handling framework that is performant, easy to use and

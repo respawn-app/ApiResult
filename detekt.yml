@@ -460,7 +460,7 @@ naming:
   InvalidPackageDeclaration:
     active: true
     excludes: [ '**/*.kts' ]
-    rootPackage: 'pro.respawn.flowmvi'
+    rootPackage: 'pro.respawn.apiresult'
   MatchingDeclarationName:
     active: false
     mustBeFirst: true

@@ -22,8 +22,3 @@
     * `gradle detektFormat`
     * `gradle assemble`
     * `gradle allTests`
-
-* If you submit a PR that changes behavior or adds a new plugin, please add tests for it.
-* All contributions are welcome, including your plugin ideas or plugins you used in your project.
-* We're especially looking for people who use FlowMVI in an iOS-compatible KMP project because we would like to include
-  the adapters and solutions people to the core library to improve overall experience of library users out-of-the-box.

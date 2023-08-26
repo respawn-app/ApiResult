@@ -53,9 +53,9 @@ val state: SubscriptionState = repo.getSubscriptions(userId)
 ## Quickstart
 
 * Documentation:
-  [![Docs](https://img.shields.io/website?down_color=red&down_message=Offline&label=Docs&up_color=green&up_message=Online&url=https%3A%2F%2Fopensource.respawn.pro%2FFlowMVI%2F%23%2F)](https://opensource.respawn.pro/ApiResult)
+  [![Docs](https://img.shields.io/website?down_color=red&down_message=Offline&label=Docs&up_color=green&up_message=Online&url=https%3A%2F%2Fopensource.respawn.pro%2FApiResult%2F%23%2F)](https://opensource.respawn.pro/ApiResult)
 * KDoc:
-  [![Javadoc](https://javadoc.io/badge2/pro.respawn.flowmvi/core/javadoc.svg)](https://opensource.respawn.pro/ApiResult/javadocs)
+  [![Javadoc](https://javadoc.io/badge2/pro.respawn.apiresult/core/javadoc.svg)](https://opensource.respawn.pro/ApiResult/javadocs)
 * Latest version:
   ![Maven Central](https://img.shields.io/maven-central/v/pro.respawn.apiresult/core?label=Maven%20Central)
 
@@ -76,7 +76,7 @@ Supported platforms:
 
 ### Feature overview:
 
-Ready to try? Start with reading the [Quickstart Guide](https://opensource.respawn.pro/FlowMVI/#/quickstart).
+Ready to try? Start with reading the [Quickstart Guide](https://opensource.respawn.pro/ApiResult/#/quickstart).
 
 ## License
 

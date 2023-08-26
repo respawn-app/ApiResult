@@ -43,7 +43,7 @@ public suspend inline fun <T> SuspendResult(
 ): ApiResult<T> = withContext(context) { ApiResult { supervisorScope(block) } }
 
 /**
- * Emits [ApiResult.Loading], then executes [call] and [ApiResult]s it.
+ * Emits [ApiResult.Loading], then executes [call] and wraps it.
  * @see Flow.asApiResult
  */
 public inline fun <T> ApiResult.Companion.flow(
@@ -54,15 +54,15 @@ public inline fun <T> ApiResult.Companion.flow(
 }
 
 /**
- * Emits [ApiResult.Loading], then executes [call]
+ * Emits [ApiResult.Loading], then executes [result]
  * @see Flow.asApiResult
  */
 @JvmName("flowWithResult")
 public inline fun <T> ApiResult.Companion.flow(
-    crossinline call: suspend () -> ApiResult<T>,
+    crossinline result: suspend () -> ApiResult<T>,
 ): Flow<ApiResult<T>> = kotlinx.coroutines.flow.flow {
     emit(Loading)
-    emit(call())
+    emit(result())
 }
 
 /**

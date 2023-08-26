@@ -1,7 +1,6 @@
 # ApiResult
 
-[![CI](https://github.com/respawn-app/ApiResult/actions/workflows/ci.yml/badge.svg)](https://github.
-com/respawn-app/ApiResult/actions/workflows/ci.yml)
+[![CI](https://github.com/respawn-app/ApiResult/actions/workflows/ci.yml/badge.svg)](https://github.com/respawn-app/ApiResult/actions/workflows/ci.yml)
 ![License](https://img.shields.io/github/license/respawn-app/ApiResult)
 ![GitHub last commit](https://img.shields.io/github/last-commit/respawn-app/ApiResult)
 ![Issues](https://img.shields.io/github/issues/respawn-app/ApiResult)

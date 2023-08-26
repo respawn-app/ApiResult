@@ -1,0 +1,59 @@
+[versions]
+composeDetektPlugin = "1.3.0"
+core-ktx = "1.10.1"
+coroutines = "1.7.3"
+dependencyAnalysisPlugin = "1.21.0"
+detekt = "1.23.1"
+detektFormattingPlugin = "1.23.1"
+dokka = "1.8.20"
+gradleAndroid = "8.2.0-beta01"
+gradleDoctorPlugin = "0.8.1"
+kotest = "5.6.2"
+kotest-plugin = "5.6.2"
+# @pin
+kotlin = "1.9.10"
+kotlinx-atomicfu = "0.22.0"
+turbine = "1.0.0"
+versionCatalogUpdatePlugin = "0.8.1"
+versionsPlugin = "0.47.0"
+
+[libraries]
+android-gradle = { module = "com.android.tools.build:gradle", version.ref = "gradleAndroid" }
+detekt-compose = { module = "ru.kode:detekt-rules-compose", version.ref = "composeDetektPlugin" }
+detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detektFormattingPlugin" }
+detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+detekt-libraries = { module = "io.gitlab.arturbosch.detekt:detekt-rules-libraries", version.ref = "detekt" }
+dokka-android = { module = "org.jetbrains.dokka:android-documentation-plugin", version.ref = "dokka" }
+gradle-versions = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "versionsPlugin" }
+kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-junit = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test-common", version.ref = "kotlin" }
+kotlin-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlin-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+version-gradle = { module = "com.github.ben-manes:gradle-versions-plugin", version.ref = "versionsPlugin" }
+
+[bundles]
+unittest = [
+    "kotest-assertions",
+    "kotest-framework",
+    "kotest-property",
+    "kotlin-coroutines-test",
+    "kotlin-reflect",
+    "kotlin-test",
+]
+
+[plugins]
+atomicfu = { id = "kotlinx-atomicfu", version.ref = "kotlinx-atomicfu" }
+dependencyAnalysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisPlugin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+gradleDoctor = { id = "com.osacky.doctor", version.ref = "gradleDoctorPlugin" }
+kotest = { id = "io.kotest.multiplatform", version.ref = "kotest-plugin" }
+version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "versionCatalogUpdatePlugin" }
+versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }

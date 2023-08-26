@@ -147,13 +147,13 @@ public inline fun <T> Sequence<ApiResult<T>>.filterSuccesses(): Sequence<Success
 /**
  * Filters all null values of [Success]es
  */
-public inline fun <T> Iterable<ApiResult<T?>>.filterNotNull(): List<ApiResult<T & Any>> =
+public inline fun <T> Iterable<ApiResult<T?>>.filterNulls(): List<ApiResult<T & Any>> =
     filter { it !is Success || it.result != null }.mapResults { it!! }
 
 /**
  * Filters all null values of [Success]es
  */
-public inline fun <T> Sequence<ApiResult<T?>>.filterNotNull(): Sequence<ApiResult<T & Any>> =
+public inline fun <T> Sequence<ApiResult<T?>>.filterNulls(): Sequence<ApiResult<T & Any>> =
     filter { it !is Success || it.result != null }.mapResults { it!! }
 
 /**

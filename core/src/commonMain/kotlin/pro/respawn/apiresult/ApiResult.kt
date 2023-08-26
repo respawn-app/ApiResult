@@ -287,6 +287,19 @@ public inline fun <T> ApiResult<T>.errorUnless(
 ): ApiResult<T> = errorIf(exception) { !predicate(it) }
 
 /**
+ * Makes [this] an [Error] if [predicate] returns false
+ * @see errorIf
+ */
+@Deprecated(
+    "renamed to errorUnless",
+    ReplaceWith("this.errorUnless(exception, predicate)", "pro.respawn.apiresult.errorUnless")
+)
+public inline fun <T> ApiResult<T>.errorIfNot(
+    exception: () -> Exception = { ConditionNotSatisfiedException() },
+    predicate: (T) -> Boolean,
+): ApiResult<T> = errorUnless(exception, predicate)
+
+/**
  * Makes [this] an [Error] if [predicate] returns true
  * @see errorUnless
  */
@@ -543,5 +556,5 @@ public inline fun <T> ApiResult<T>.require(
 ): ApiResult<T> =
     errorUnless(
         exception = { IllegalArgumentException(message()) },
-        predicate = predicate,
+        predicate = predicate
     )

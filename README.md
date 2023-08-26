@@ -11,7 +11,7 @@
 ApiResult is a Kotlin Multiplatform declarative error handling framework that is performant, easy to use and
 feature-rich.
 
-ApiResult is [Railway Programming](https://blog.logrocket.com/what-is-railway-oriented-programming/) and functional
+ApiResult is [Railway Programming](https://proandroiddev.com/railway-oriented-programming-in-kotlin-f1bceed399e5) and functional
 error handling **on steroids**.
 
 ## Features

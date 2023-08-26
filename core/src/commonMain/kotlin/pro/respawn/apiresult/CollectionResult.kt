@@ -113,15 +113,16 @@ public inline infix fun <T> Sequence<ApiResult<T>>.mapErrors(
 /**
  * Filter the underlying collection.
  */
-public inline infix fun <T : Iterable<R>, R> ApiResult<T>.filter(block: () -> Boolean): ApiResult<List<R>> =
-    map { it.filter { block() } }
+public inline infix fun <T : Iterable<R>, R> ApiResult<T>.filter(block: (R) -> Boolean): ApiResult<List<R>> =
+    map { it.filter(block) }
 
 /**
  * Filter the underlying sequence.
  */
+@JvmName("filterSequence")
 public inline infix fun <T : Sequence<R>, R> ApiResult<T>.filter(
-    crossinline block: () -> Boolean
-): ApiResult<Sequence<R>> = map { it.filter { block() } }
+    noinline block: (R) -> Boolean
+): ApiResult<Sequence<R>> = map { it.filter(block) }
 
 /**
  * Filters only [Error] values
@@ -169,7 +170,10 @@ public inline fun <T> ApiResult.Companion.merge(vararg results: ApiResult<T>): A
 /**
  * Returns a list of only [Success] values, discarding any errors
  */
-public inline fun <T> Iterable<ApiResult<T>>.values(): List<T> = filterSuccesses().map { it.result }
+public inline fun <T> Iterable<ApiResult<T>>.values(): List<T> = asSequence()
+    .filterSuccesses()
+    .map { it.result }
+    .toList()
 
 /**
  * Return the first [Success] value, or an [Error] if no success was found

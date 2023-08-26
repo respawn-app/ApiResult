@@ -39,11 +39,12 @@ class PublishGameWorker : CoroutineWorker(context, workerParams) {
                 .then { data -> repo.publishGame(game, data) } // and then publishing that data safely
         }
         .tryChain { updateProgress(WorkerProgressState.GETTING_VIDEO_URLS) } // updating the progress again
-        .tryMap { game -> // safely trying to get the id and wrapping IllegalArgumentExceptions
-
+        .tryMap { game ->
             // here we wanted to preserve the previous result and add another one to it. We used the Pair class 
             // and monad comprehensions with tryMap() and bang operator (!) to achieve the desired outcome
-            !game.getRemoteId() to !repo.getPreSignedUrl(id)
+            val id = !game.getRemoteId()
+            val url = !repo.getGameUrl(id)
+            game to url
         }
         .tryChain { updateProgress(UPLOADING_VIDEO, 0f) }
         .chain { (game, url) -> uploadVideo(url, game.videoUri) } // then chained another API call 
@@ -61,28 +62,24 @@ class PublishGameWorker : CoroutineWorker(context, workerParams) {
 
     fun RemoteGame.getRemoteId() = ApiResult(this.remoteId?.id)
         .errorOnNull()
-        .map(GameId::Local)
+        .map(GameId::Remote)
 
-    // if you need to use the result of the previous chained call, but don't want to lose the previous result, just
-    // create a separate function or nest the result
-    private suspend fun publishGameData(localGame: Game) =
-
-        // we're using suspend result to wrap the upload progress
-        private suspend fun uploadVideo(url: String, videoUri: Uri) = SuspendResult {
-            api.uploadVideo(
-                url = url,
-                file = getVideoFile(videoUri),
-                progressCallback = { progress ->
-                    // suspend result allowed us to launch nested coroutines and wait for their completion easily
-                    launch {
-                        updateProgress(
-                            state = UPLOADING_VIDEO,
-                            currentStateProgress = progress,
-                        )
-                    }
-                },
-            )
-        }.log()
+    // we're using suspend result to wrap the upload progress
+    private suspend fun uploadVideo(url: String, videoUri: Uri) = SuspendResult {
+        api.uploadVideo(
+            url = url,
+            file = getVideoFile(videoUri),
+            progressCallback = { progress ->
+                // suspend result allowed us to launch nested coroutines and wait for their completion easily
+                launch {
+                    updateProgress(
+                        state = UPLOADING_VIDEO,
+                        currentStateProgress = progress,
+                    )
+                }
+            },
+        )
+    }.log()
 
     private suspend fun signalVideoUpload(gameId: String?) = ApiResult(gameId) // starting with a nullable game id
         .requireNotNull() // and then failing if it was not found, before executing any database calls

@@ -20,13 +20,12 @@ error handling **on steroids**.
   All instances of it are `value class`es, all operations are `inline`, which means literally 0 overhead.
 * ApiResult offers 85+ operators covering most of possible use cases to turn your
   code from imperative and procedural to declarative and functional, which is more readable and extensible.
-* ApiResult defines a contract that you can use in your code. No one will be able to obtain a result of a computation
+* ApiResult defines a contract that you can use in your code. No one will be able to obtain the result of a computation
   without being forced to handle errors at compilation time.
 
 ## Preview
 
 ```kotlin
-
 // wrap a result of a computation
 suspend fun getSubscriptions(userId: String): ApiResult<List<Subscription>?> = ApiResult {
     api.getSubscriptions(userId)
@@ -67,16 +66,14 @@ apiresult = "< Badge above 👆🏻 >"
 apiresult = { module = "pro.respawn.apiresult:core", version.ref = "apiresult" } 
 ```
 
-Supported platforms:
+Ready to try? Start with reading the [Quickstart Guide](https://opensource.respawn.pro/ApiResult/#/quickstart).
+
+## Supported platforms:
 
 * JVM: [ `Android`, `JRE 11+` ],
 * Linux [ `x64`, `mingw64` ],
 * Apple: [ `iOSx64`, `macOSx64`, `watchOSx64`, `tvOSx64` ],
 * js: [ `nodejs`, `browser` ]
-
-### Feature overview:
-
-Ready to try? Start with reading the [Quickstart Guide](https://opensource.respawn.pro/ApiResult/#/quickstart).
 
 ## License
 

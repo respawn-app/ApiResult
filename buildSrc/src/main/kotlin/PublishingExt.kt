@@ -64,7 +64,6 @@ internal fun PublishingExtension.sonatypeRepository(release: Boolean, localProps
 
 internal fun Project.signPublications(isRelease: Boolean, localProps: Properties) =
     requireNotNull(extensions.findByType<SigningExtension>()).apply {
-
         val publishing = requireNotNull(extensions.findByType<PublishingExtension>())
 
         val signingKey: String? = localProps["signing.key"]?.toString()

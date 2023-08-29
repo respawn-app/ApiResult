@@ -13,12 +13,12 @@ import pro.respawn.apiresult.unit
 class MockSecurityRepository : SecurityRepository {
 
     private suspend fun verifySignature() = ApiResult {
-        delay(500)
+        delay(timeMillis = 500)
         true
     }
 
     private suspend fun verifyPackage() = ApiResult {
-        delay(500)
+        delay(timeMillis = 500)
         true
     }
 

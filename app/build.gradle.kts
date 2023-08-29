@@ -23,8 +23,8 @@ android {
     }
     kotlinOptions {
         freeCompilerArgs += Config.jvmCompilerArgs +
-                "-P" +
-                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
+            "-P" +
+            "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
         jvmTarget = Config.jvmTarget.target
         languageVersion = Config.kotlinVersion.version
     }

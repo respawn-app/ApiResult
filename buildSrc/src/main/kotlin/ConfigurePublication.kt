@@ -32,7 +32,7 @@ fun Project.publishMultiplatform() {
                 configureVersion(isReleaseBuild)
             }
         }
-        signPublications(isReleaseBuild,properties)
+        signPublications(isReleaseBuild, properties)
     }
 
     tasks.withType<AbstractPublishToMaven> {

@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import pro.respawn.apiresult.ApiResult
 import pro.respawn.apiresult.ApiResult.Loading.isLoading
 import pro.respawn.apiresult.chain
-import pro.respawn.apiresult.errorOnNull
 import pro.respawn.apiresult.fold
 import pro.respawn.apiresult.map
 import pro.respawn.apiresult.recover
@@ -20,11 +19,9 @@ import pro.respawn.apiresult.sample.data.MockTransactionRepository
 import pro.respawn.apiresult.sample.data.MockUserRepository
 import pro.respawn.apiresult.sample.domain.SecurityRepository
 import pro.respawn.apiresult.sample.domain.TransactionRepository
-import pro.respawn.apiresult.sample.domain.errors.AuthenticationException
 import pro.respawn.apiresult.sample.domain.errors.DeviceIntegrityException
 import pro.respawn.apiresult.sample.domain.errors.TransactionError
 import pro.respawn.apiresult.sample.domain.errors.TransactionError.NotEnoughFunds
-import pro.respawn.apiresult.sample.domain.errors.transactionErrors
 import pro.respawn.apiresult.sample.util.log
 import pro.respawn.apiresult.then
 import pro.respawn.apiresult.tryChain

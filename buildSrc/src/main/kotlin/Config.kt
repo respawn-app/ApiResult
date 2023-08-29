@@ -17,9 +17,17 @@ object Config {
 
     const val majorRelease = 1
     const val minorRelease = 0
-    const val patch = 0
+    const val patch = 1
     const val postfix = ""
     const val versionName = "$majorRelease.$minorRelease.$patch$postfix"
+    const val url = "https://github.com/respawn-app/ApiResult"
+    const val licenseName = "The Apache Software License, Version 2.0"
+    const val licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+    const val scmUrl = "https://github.com/respawn-app/ApiResult.git"
+    const val description = """
+ApiResult is a Kotlin Multiplatform declarative error handling framework that is performant, easy to use and
+feature-rich.
+    """
 
     // kotlin
 
@@ -46,6 +54,8 @@ object Config {
     val kotlinVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9
     const val compileSdk = 34
     const val minSdk = 21
+    const val targetSdk = compileSdk
+    const val appMinSdk = 26
     const val publishingVariant = "release"
 
     // android

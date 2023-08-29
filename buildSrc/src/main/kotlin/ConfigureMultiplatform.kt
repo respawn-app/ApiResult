@@ -23,21 +23,6 @@ fun Project.configureMultiplatform(
         browser()
         nodejs()
         binaries.library()
-        binaries.executable()
-    }
-    // TODO: KMM js <> gradle 8.0 incompatibility
-    tasks.run {
-        val jsLibrary = named("jsProductionLibraryCompileSync")
-        val jsExecutable = named("jsProductionExecutableCompileSync")
-        named("jsBrowserProductionWebpack").configure {
-            dependsOn(jsLibrary)
-        }
-        named("jsBrowserProductionLibraryPrepare").configure {
-            dependsOn(jsExecutable)
-        }
-        named("jsNodeProductionLibraryPrepare").configure {
-            dependsOn(jsExecutable)
-        }
     }
 
     androidTarget {

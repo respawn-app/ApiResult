@@ -100,4 +100,7 @@ Writing all this code by hand with try/catch, `map`, `let`, `also`, `finally` an
 more code, all while still being error-prone and fragile. This code correctly halts worker's execution, skipping
 unnecessary steps while making sure the worker's body never throws or leaves wasted resources behind.
 
-More examples will be coming along soon.
+### Example: Handling a financial transaction
+
+This example is illustrated in
+the [sample app](https://github.com/respawn-app/ApiResult/tree/master/app/src/main/kotlin/pro/respawn/apiresult/sample)

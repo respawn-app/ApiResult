@@ -85,4 +85,4 @@ fun RepositoryHandler.ivyNative() {
 
 rootProject.name = "ApiResult"
 
-include(":core")
+include(":core", ":app")

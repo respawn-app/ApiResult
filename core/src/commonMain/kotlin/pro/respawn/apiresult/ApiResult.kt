@@ -326,7 +326,6 @@ public inline fun <T> ApiResult<T>.errorOnLoading(
 
 /**
  * Alias for [errorOnNull]
- * @see errorOnNull
  */
 public inline fun <T> ApiResult<T?>.requireNotNull(): ApiResult<T & Any> = errorOnNull()
 
@@ -398,13 +397,22 @@ public inline infix fun <T, R : T> ApiResult<T>.mapLoading(block: () -> R): ApiR
 /**
  * Change the exception of the [Error] response without affecting loading/success results
  */
-public inline infix fun <T, R : Exception> ApiResult<T>.mapError(block: (Exception) -> R): ApiResult<T> {
+public inline infix fun <T> ApiResult<T>.mapError(
+    block: (Exception) -> Exception
+): ApiResult<T> = mapError<Exception, _>(block)
+
+/**
+ * Map the exception of the [Error] state, but only if this exception is of type [R].
+ * [Loading] and [Success] are unaffected
+ */
+@JvmName("mapErrorTyped")
+public inline infix fun <reified R : Exception, T> ApiResult<T>.mapError(block: (R) -> Exception): ApiResult<T> {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Success, is Loading -> this
-        is Error -> Error(block(e))
+    return when {
+        this is Error && e is R -> Error(block(e))
+        else -> this
     }
 }
 
@@ -455,20 +463,35 @@ public inline fun <T> ApiResult<T>.nullOnError(): ApiResult<T?> = if (this is Er
  * Overload for a lambda that already returns an [ApiResult].
  * @see recover
  */
-public inline infix fun <reified T : Exception, R> ApiResult<R>.recover(another: (e: T) -> ApiResult<R>): ApiResult<R> =
-    when (this) {
-        is Success, is Loading -> this
-        is Error -> if (e is T) another(e) else this
-    }
+@JvmName("recoverTyped")
+public inline infix fun <reified T : Exception, R> ApiResult<R>.recover(
+    another: (e: T) -> ApiResult<R>
+): ApiResult<R> = when {
+    this is Error && e is T -> another(e)
+    else -> this
+}
+
+/**
+ * Recover from an exception. Does not affect [Loading]
+ * See also the typed version of this function to recover from a specific exception type
+ */
+public inline infix fun <T> ApiResult<T>.recover(another: (e: Exception) -> ApiResult<T>): ApiResult<T> =
+    recover<Exception, T>(another)
 
 /**
  * calls [recover] catching and wrapping any exceptions thrown inside [block].
  */
+@JvmName("tryRecoverTyped")
 public inline infix fun <reified T : Exception, R> ApiResult<R>.tryRecover(block: (T) -> R): ApiResult<R> =
-    when (this) {
-        is Success, is Loading -> this
-        is Error -> if (e is T) ApiResult { block(e) } else this
-    }
+    recover<T, R> { ApiResult { block(it) } }
+
+/**
+ * Calls [recover] catching and wrapping any exceptions thrown inside [block].
+ * See also the typed version of this function to recover from a specific exception type
+ */
+public inline infix fun <T> ApiResult<T>.tryRecover(
+    block: (e: Exception) -> T
+): ApiResult<T> = tryRecover<Exception, T>(block)
 
 /**
  * Recover from an [Error] only if the [condition] is true, else no-op.
@@ -483,9 +506,9 @@ public inline fun <T> ApiResult<T>.recoverIf(
         callsInPlace(condition, InvocationKind.AT_MOST_ONCE)
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Success, is Loading -> this
-        is Error -> if (condition(e)) Success(block(e)) else this
+    return when {
+        this is Error && condition(e) -> Success(block(e))
+        else -> this
     }
 }
 
@@ -558,3 +581,8 @@ public inline fun <T> ApiResult<T>.require(
         exception = { IllegalArgumentException(message()) },
         predicate = predicate
     )
+
+/**
+ * Map [this] result to [Unit], discarding the value
+ */
+public inline fun ApiResult<*>.unit(): ApiResult<Unit> = map {}

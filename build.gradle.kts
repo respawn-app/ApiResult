@@ -1,4 +1,3 @@
-import org.jetbrains.dokka.gradle.AbstractDokkaTask
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -46,20 +45,13 @@ subprojects {
             useJUnitPlatform()
             filter { isFailOnNoMatchingTests = true }
         }
-        withType<AbstractDokkaTask> {
-            val className =
-                "org.jetbrains.kotlin.gradle.targets.native.internal.CInteropMetadataDependencyTransformationTask"
-
-            @Suppress("UNCHECKED_CAST")
-            val taskClass = Class.forName(className) as Class<Task>
-            parent?.subprojects?.forEach {
-                dependsOn(it.tasks.withType(taskClass))
-            }
-        }
-
         register<org.gradle.jvm.tasks.Jar>("dokkaJavadocJar") {
             dependsOn(dokkaJavadoc)
             from(dokkaJavadoc.flatMap { it.outputDirectory })
+            archiveClassifier.set("javadoc")
+        }
+
+        register<org.gradle.jvm.tasks.Jar>("emptyJavadocJar") {
             archiveClassifier.set("javadoc")
         }
     }

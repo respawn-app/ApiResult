@@ -34,6 +34,7 @@ allprojects {
 }
 
 subprojects {
+    if (name == "app") return@subprojects
     apply(plugin = rootProject.libs.plugins.dokka.id)
 
     dependencies {

@@ -125,6 +125,7 @@ for collections as well as coroutines.
 * `tryChain { anotherCallOrThrow(it) } ` - chain another call that can throw and wrap the error if it does. Useful when
   the call that you are trying to chain to does not return an `ApiResult` already, unlike what `chain` expects
 * `mapErrorToCause()` - map errors to their causes, if present, and if not, return that same exception
+* `unit()` - discard the value of the result. Same as `map { Unit }`
 
 ### Collection operators:
 

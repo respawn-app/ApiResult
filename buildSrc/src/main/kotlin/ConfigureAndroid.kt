@@ -65,6 +65,11 @@ fun Project.configureAndroid(
             }
         }
     }
+    val libs by versionCatalog
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.requireVersion("compose-compiler")
+        useLiveLiterals = true
+    }
 }
 
 fun Project.configureAndroidLibrary(variant: LibraryExtension) = variant.apply {

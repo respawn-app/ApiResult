@@ -54,6 +54,8 @@ feature-rich.
     val kotlinVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9
     const val compileSdk = 34
     const val minSdk = 21
+    const val targetSdk = compileSdk
+    const val appMinSdk = 26
     const val publishingVariant = "release"
 
     // android

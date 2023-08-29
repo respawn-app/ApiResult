@@ -455,11 +455,19 @@ public inline fun <T> ApiResult<T>.nullOnError(): ApiResult<T?> = if (this is Er
  * Overload for a lambda that already returns an [ApiResult].
  * @see recover
  */
+@JvmName("recoverTyped")
 public inline infix fun <reified T : Exception, R> ApiResult<R>.recover(another: (e: T) -> ApiResult<R>): ApiResult<R> =
     when (this) {
         is Success, is Loading -> this
         is Error -> if (e is T) another(e) else this
     }
+
+/**
+ * Recover from an exception. Does not affect [Loading]
+ * See also the typed version of this function to recover from a specific exception type
+ */
+public inline infix fun <T> ApiResult<T>.recover(another: (e: Exception) -> ApiResult<T>): ApiResult<T> =
+    recover<Exception, T>(another)
 
 /**
  * calls [recover] catching and wrapping any exceptions thrown inside [block].
@@ -469,6 +477,15 @@ public inline infix fun <reified T : Exception, R> ApiResult<R>.tryRecover(block
         is Success, is Loading -> this
         is Error -> if (e is T) ApiResult { block(e) } else this
     }
+
+/**
+ * Calls [recover] catching and wrapping any exceptions thrown inside [block].
+ * See also the typed version of this function to recover from a specific exception type
+ */
+@JvmName("tryRecoverTyped")
+public inline infix fun <T> ApiResult<T>.tryRecover(
+    block: (e: Exception) -> T
+): ApiResult<T> = tryRecover<Exception, T>(block)
 
 /**
  * Recover from an [Error] only if the [condition] is true, else no-op.
@@ -558,3 +575,8 @@ public inline fun <T> ApiResult<T>.require(
         exception = { IllegalArgumentException(message()) },
         predicate = predicate
     )
+
+/**
+ * Map [this] result to [Unit], discarding the value
+ */
+public inline fun ApiResult<*>.unit(): ApiResult<Unit> = map {}

@@ -19,8 +19,7 @@ error handling **on steroids**.
 
 ## Features
 
-* ApiResult is **extremely lightweight**. It is lighter than kotlin.Result.
-  All instances of it are `value class`es, all operations are `inline`, which means literally 0 overhead.
+* ApiResult is **lightweight**. The library tries to inline operators and reduce allocations where possible.
 * ApiResult offers 90+ operators covering most of possible use cases to turn your
   code from imperative and procedural to declarative and functional, which is more readable and extensible.
 * ApiResult defines a contract that you can use in your code. No one will be able to obtain the result of a computation

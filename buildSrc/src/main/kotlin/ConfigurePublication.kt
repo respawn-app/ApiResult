@@ -17,7 +17,7 @@ import org.gradle.plugins.signing.Sign
  * Configures Maven publishing to sonatype for this project
  */
 fun Project.publishMultiplatform() {
-    val properties = gradleLocalProperties(rootDir)
+    val properties by localProperties
     val isReleaseBuild = properties["release"]?.toString().toBoolean()
 
     val javadocTask = tasks.named("emptyJavadocJar") // TODO: Dokka does not support KMP javadocs for now
@@ -52,7 +52,7 @@ fun Project.publishAndroid(ext: LibraryExtension) = with(ext) {
     }
 
     afterEvaluate {
-        val properties = gradleLocalProperties(rootDir)
+        val properties by localProperties
         val isReleaseBuild = properties["release"]?.toString().toBoolean()
 
         requireNotNull(extensions.findByType<PublishingExtension>()).apply {

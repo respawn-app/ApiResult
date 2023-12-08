@@ -576,11 +576,10 @@ public inline fun <T, R> ApiResult<T>.flatMap(another: (T) -> ApiResult<R>): Api
 public inline fun <T> ApiResult<T>.require(
     message: () -> String? = { null },
     predicate: (T) -> Boolean
-): ApiResult<T> =
-    errorUnless(
-        exception = { IllegalArgumentException(message()) },
-        predicate = predicate
-    )
+): ApiResult<T> = errorUnless(
+    exception = { IllegalArgumentException(message()) },
+    predicate = predicate
+)
 
 /**
  * Map [this] result to [Unit], discarding the value

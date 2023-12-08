@@ -1,4 +1,4 @@
-@file:Suppress("MissingPackageDeclaration", "unused", "UNUSED_VARIABLE", "UndocumentedPublicFunction", "LongMethod")
+@file:Suppress("MissingPackageDeclaration", "unused", "UndocumentedPublicFunction", "LongMethod")
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getValue

@@ -159,13 +159,20 @@ public inline fun <T> Sequence<ApiResult<T?>>.filterNulls(): Sequence<ApiResult<
 /**
  * Merges all [Success] results into a single [List], or if any has failed, returns [Error].
  */
-public inline fun <T> Iterable<ApiResult<T>>.merge(): ApiResult<List<T>> = ApiResult { map { it.orThrow() } }
+public inline fun <T> Iterable<ApiResult<T>>.merge(): ApiResult<List<T>> = ApiResult { map { !it } }
 
 /**
  * Merges all [results] into a single [List], or if any has failed, returns [Error].
  */
-public inline fun <T> ApiResult.Companion.merge(vararg results: ApiResult<T>): ApiResult<List<T>> =
+public inline fun <T> ApiResult.Loading.merge(vararg results: ApiResult<T>): ApiResult<List<T>> =
     results.asIterable().merge()
+
+/**
+ * Merges [this] results and all other [results] into a single result of type [T].
+ */
+public inline fun <T> ApiResult<T>.merge(
+    vararg results: ApiResult<T>
+): ApiResult<List<T>> = ApiResult.merge(this, *results)
 
 /**
  * Returns a list of only [Success] values, discarding any errors

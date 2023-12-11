@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import pro.respawn.apiresult.ApiResult
-import pro.respawn.apiresult.ApiResult.Loading.isLoading
+import pro.respawn.apiresult.asResult
 import pro.respawn.apiresult.chain
 import pro.respawn.apiresult.fold
 import pro.respawn.apiresult.map
@@ -41,9 +40,9 @@ data class UiState(
 )
 
 class MainViewModel(
-    val transactionRepository: TransactionRepository = MockTransactionRepository(),
-    val securityRepository: SecurityRepository = MockSecurityRepository(),
-    val userRepository: UserRepository = MockUserRepository(),
+    private val transactionRepository: TransactionRepository = MockTransactionRepository(),
+    private val securityRepository: SecurityRepository = MockSecurityRepository(),
+    private val userRepository: UserRepository = MockUserRepository(),
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(UiState())
@@ -52,7 +51,8 @@ class MainViewModel(
     fun onClickPurchase() = viewModelScope.launch {
         _state.update { it.copy(isLoading = true, result = null) }
 
-        ApiResult(state.value.userId)
+        state.value.userId
+            .asResult
             .requireNotNull()
             .then { userRepository.getUser(it) }
             .recover { userRepository.getAnonymousUser() }

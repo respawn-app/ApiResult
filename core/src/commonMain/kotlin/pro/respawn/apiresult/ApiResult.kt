@@ -24,9 +24,8 @@ import kotlin.jvm.JvmName
 
 /**
  * A class that represents a result of an operation.
- * Create an instance with [ApiResult.invoke] and use various operators on the resulting object.
  *
- * This class is **extremely efficient**: no actual objects are created,
+ * This class is **efficient**: no actual objects are created unless dynamic type resolution is required,
  * all operations are inlined and no function resolution is performed.
  * ApiResult is **not** an Rx-style callback chain -
  * the operators that are invoked are called **immediately** and in-place.
@@ -60,7 +59,6 @@ public sealed interface ApiResult<out T> {
      * This is equivalent to calling [orThrow]
      */
     public operator fun not(): T = orThrow()
-
 
     /**
      * A value of [ApiResult] for its successful state.
@@ -97,10 +95,14 @@ public sealed interface ApiResult<out T> {
      */
     public val isLoading: Boolean get() = this is Loading
 
+    /**
+     * A loading state of an [ApiResult]
+     */
     public companion object Loading : ApiResult<Nothing> {
 
+        override fun equals(other: Any?): Boolean = other is Loading
+        override fun hashCode(): Int = 42
         override fun toString(): String = "ApiResult.Loading"
-        override fun equals(other: Any?): Boolean = other === Loading
 
         /**
          * Execute [call], catching any exceptions, and wrap it in an [ApiResult].
@@ -203,6 +205,13 @@ public inline fun <T> ApiResult<T>.orThrow(): T = when (this) {
     is Error -> throw e
     is Success -> result
 }
+
+/**
+ * Throws if [this] result is an [Error] and [Error.e] is of type [T]. Ignores all other exceptions.
+ *
+ * @return a result that can be [Error] but is guaranteed to not have an exception of type [T] wrapped.
+ */
+public inline fun <reified T : Exception, R> ApiResult<R>.rethrow(): ApiResult<R> = mapError<T, R> { throw it }
 
 /**
  * Fold [this] returning the result of [onSuccess] or [onError]

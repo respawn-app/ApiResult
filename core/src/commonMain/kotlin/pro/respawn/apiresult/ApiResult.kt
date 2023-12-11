@@ -6,6 +6,8 @@
     "NOTHING_TO_INLINE",
     "TooManyFunctions",
     "ThrowingExceptionsWithoutMessageOrCause",
+    "INVISIBLE_REFERENCE",
+    "INVISIBLE_MEMBER",
 )
 
 package pro.respawn.apiresult
@@ -40,7 +42,7 @@ public sealed interface ApiResult<out T> {
      * ```
      * @see orNull
      */
-    public operator fun component1(): T? = (this as? Success<T>)?.result
+    public operator fun component1(): T? = orNull()
 
     /**
      * Get the [Error] component of this result or null
@@ -59,13 +61,6 @@ public sealed interface ApiResult<out T> {
      */
     public operator fun not(): T = orThrow()
 
-    /**
-     * A loading state of an [ApiResult]
-     */
-    public data object Loading : ApiResult<Nothing> {
-
-        override fun toString(): String = "ApiResult.Loading"
-    }
 
     /**
      * A value of [ApiResult] for its successful state.
@@ -102,7 +97,10 @@ public sealed interface ApiResult<out T> {
      */
     public val isLoading: Boolean get() = this is Loading
 
-    public companion object {
+    public companion object Loading : ApiResult<Nothing> {
+
+        override fun toString(): String = "ApiResult.Loading"
+        override fun equals(other: Any?): Boolean = other === Loading
 
         /**
          * Execute [call], catching any exceptions, and wrap it in an [ApiResult].
@@ -134,7 +132,7 @@ public sealed interface ApiResult<out T> {
          * Use this for applying operators such as `require` and `mapWrapping` to build chains of operators that should
          * start with an empty value.
          */
-        public inline operator fun invoke(): ApiResult<Unit> = ApiResult(Unit)
+        public inline operator fun invoke(): ApiResult<Unit> = this
     }
 }
 
@@ -189,12 +187,12 @@ public inline infix fun <T, R : T> ApiResult<T>.or(defaultValue: R): T = orElse 
 /**
  * @return null if [this] is an [ApiResult.Error] or [ApiResult.Loading], otherwise return self.
  */
-public inline fun <T> ApiResult<T>.orNull(): T? = or(null)
+public inline fun <T> ApiResult<T>?.orNull(): T? = this?.or(null)
 
 /**
  * @return exception if [this] is [Error] or null
  */
-public inline fun <T> ApiResult<T>.exceptionOrNull(): Exception? = (this as? Error)?.e
+public inline fun <T> ApiResult<T>?.exceptionOrNull(): Exception? = (this as? Error)?.e
 
 /**
  * Throws [ApiResult.Error.e], or [NotFinishedException] if the request has not been completed yet.
@@ -327,7 +325,7 @@ public inline fun <T> ApiResult<T>.errorOnLoading(
 /**
  * Alias for [errorOnNull]
  */
-public inline fun <T> ApiResult<T?>.requireNotNull(): ApiResult<T & Any> = errorOnNull()
+public inline fun <T> ApiResult<T?>?.requireNotNull(): ApiResult<T & Any> = errorOnNull()
 
 /**
  * Throws if [this] is not [Success] and returns [Success] otherwise.
@@ -446,9 +444,9 @@ public inline infix fun <T, R> ApiResult<T>.tryMap(block: (T) -> R): ApiResult<R
  * @see errorIf
  * @see errorIfEmpty
  */
-public inline fun <T> ApiResult<T?>.errorOnNull(
+public inline fun <T> ApiResult<T?>?.errorOnNull(
     exception: () -> Exception = { ConditionNotSatisfiedException("Value was null") },
-): ApiResult<T & Any> = errorIf(exception) { it == null }.map { requireNotNull(it) }
+): ApiResult<T & Any> = this?.errorIf(exception) { it == null }?.map { requireNotNull(it) } ?: Error(exception())
 
 /**
  * Maps [Error] values to nulls
@@ -483,7 +481,7 @@ public inline infix fun <T> ApiResult<T>.recover(another: (e: Exception) -> ApiR
  */
 @JvmName("tryRecoverTyped")
 public inline infix fun <reified T : Exception, R> ApiResult<R>.tryRecover(block: (T) -> R): ApiResult<R> =
-    recover<T, R> { ApiResult { block(it) } }
+    recover<T, R>(another = { ApiResult { block(it) } })
 
 /**
  * Calls [recover] catching and wrapping any exceptions thrown inside [block].
@@ -585,3 +583,10 @@ public inline fun <T> ApiResult<T>.require(
  * Map [this] result to [Unit], discarding the value
  */
 public inline fun ApiResult<*>.unit(): ApiResult<Unit> = map {}
+
+/**
+ * Create an [ApiResult] from `this` value, based on the type of it.
+ *
+ * @see ApiResult.invoke
+ */
+public inline val <T> T.asResult: ApiResult<T> get() = ApiResult(this)

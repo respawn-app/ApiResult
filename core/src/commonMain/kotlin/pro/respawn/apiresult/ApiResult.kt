@@ -6,6 +6,8 @@
     "NOTHING_TO_INLINE",
     "TooManyFunctions",
     "ThrowingExceptionsWithoutMessageOrCause",
+    "INVISIBLE_REFERENCE",
+    "INVISIBLE_MEMBER",
 )
 
 package pro.respawn.apiresult
@@ -22,9 +24,8 @@ import kotlin.jvm.JvmName
 
 /**
  * A class that represents a result of an operation.
- * Create an instance with [ApiResult.invoke] and use various operators on the resulting object.
  *
- * This class is **extremely efficient**: no actual objects are created,
+ * This class is **efficient**: no actual objects are created unless dynamic type resolution is required,
  * all operations are inlined and no function resolution is performed.
  * ApiResult is **not** an Rx-style callback chain -
  * the operators that are invoked are called **immediately** and in-place.
@@ -40,7 +41,7 @@ public sealed interface ApiResult<out T> {
      * ```
      * @see orNull
      */
-    public operator fun component1(): T? = (this as? Success<T>)?.result
+    public operator fun component1(): T? = orNull()
 
     /**
      * Get the [Error] component of this result or null
@@ -58,14 +59,6 @@ public sealed interface ApiResult<out T> {
      * This is equivalent to calling [orThrow]
      */
     public operator fun not(): T = orThrow()
-
-    /**
-     * A loading state of an [ApiResult]
-     */
-    public data object Loading : ApiResult<Nothing> {
-
-        override fun toString(): String = "ApiResult.Loading"
-    }
 
     /**
      * A value of [ApiResult] for its successful state.
@@ -102,7 +95,14 @@ public sealed interface ApiResult<out T> {
      */
     public val isLoading: Boolean get() = this is Loading
 
-    public companion object {
+    /**
+     * A loading state of an [ApiResult]
+     */
+    public companion object Loading : ApiResult<Nothing> {
+
+        override fun equals(other: Any?): Boolean = other is Loading
+        override fun hashCode(): Int = 42
+        override fun toString(): String = "ApiResult.Loading"
 
         /**
          * Execute [call], catching any exceptions, and wrap it in an [ApiResult].
@@ -134,7 +134,7 @@ public sealed interface ApiResult<out T> {
          * Use this for applying operators such as `require` and `mapWrapping` to build chains of operators that should
          * start with an empty value.
          */
-        public inline operator fun invoke(): ApiResult<Unit> = ApiResult(Unit)
+        public inline operator fun invoke(): ApiResult<Unit> = this
     }
 }
 
@@ -189,12 +189,12 @@ public inline infix fun <T, R : T> ApiResult<T>.or(defaultValue: R): T = orElse 
 /**
  * @return null if [this] is an [ApiResult.Error] or [ApiResult.Loading], otherwise return self.
  */
-public inline fun <T> ApiResult<T>.orNull(): T? = or(null)
+public inline fun <T> ApiResult<T>?.orNull(): T? = this?.or(null)
 
 /**
  * @return exception if [this] is [Error] or null
  */
-public inline fun <T> ApiResult<T>.exceptionOrNull(): Exception? = (this as? Error)?.e
+public inline fun <T> ApiResult<T>?.exceptionOrNull(): Exception? = (this as? Error)?.e
 
 /**
  * Throws [ApiResult.Error.e], or [NotFinishedException] if the request has not been completed yet.
@@ -205,6 +205,13 @@ public inline fun <T> ApiResult<T>.orThrow(): T = when (this) {
     is Error -> throw e
     is Success -> result
 }
+
+/**
+ * Throws if [this] result is an [Error] and [Error.e] is of type [T]. Ignores all other exceptions.
+ *
+ * @return a result that can be [Error] but is guaranteed to not have an exception of type [T] wrapped.
+ */
+public inline fun <reified T : Exception, R> ApiResult<R>.rethrow(): ApiResult<R> = mapError<T, R> { throw it }
 
 /**
  * Fold [this] returning the result of [onSuccess] or [onError]
@@ -327,7 +334,7 @@ public inline fun <T> ApiResult<T>.errorOnLoading(
 /**
  * Alias for [errorOnNull]
  */
-public inline fun <T> ApiResult<T?>.requireNotNull(): ApiResult<T & Any> = errorOnNull()
+public inline fun <T> ApiResult<T?>?.requireNotNull(): ApiResult<T & Any> = errorOnNull()
 
 /**
  * Throws if [this] is not [Success] and returns [Success] otherwise.
@@ -446,9 +453,9 @@ public inline infix fun <T, R> ApiResult<T>.tryMap(block: (T) -> R): ApiResult<R
  * @see errorIf
  * @see errorIfEmpty
  */
-public inline fun <T> ApiResult<T?>.errorOnNull(
+public inline fun <T> ApiResult<T?>?.errorOnNull(
     exception: () -> Exception = { ConditionNotSatisfiedException("Value was null") },
-): ApiResult<T & Any> = errorIf(exception) { it == null }.map { requireNotNull(it) }
+): ApiResult<T & Any> = this?.errorIf(exception) { it == null }?.map { requireNotNull(it) } ?: Error(exception())
 
 /**
  * Maps [Error] values to nulls
@@ -483,7 +490,7 @@ public inline infix fun <T> ApiResult<T>.recover(another: (e: Exception) -> ApiR
  */
 @JvmName("tryRecoverTyped")
 public inline infix fun <reified T : Exception, R> ApiResult<R>.tryRecover(block: (T) -> R): ApiResult<R> =
-    recover<T, R> { ApiResult { block(it) } }
+    recover<T, R>(another = { ApiResult { block(it) } })
 
 /**
  * Calls [recover] catching and wrapping any exceptions thrown inside [block].
@@ -576,13 +583,19 @@ public inline fun <T, R> ApiResult<T>.flatMap(another: (T) -> ApiResult<R>): Api
 public inline fun <T> ApiResult<T>.require(
     message: () -> String? = { null },
     predicate: (T) -> Boolean
-): ApiResult<T> =
-    errorUnless(
-        exception = { IllegalArgumentException(message()) },
-        predicate = predicate
-    )
+): ApiResult<T> = errorUnless(
+    exception = { IllegalArgumentException(message()) },
+    predicate = predicate
+)
 
 /**
  * Map [this] result to [Unit], discarding the value
  */
 public inline fun ApiResult<*>.unit(): ApiResult<Unit> = map {}
+
+/**
+ * Create an [ApiResult] from `this` value, based on the type of it.
+ *
+ * @see ApiResult.invoke
+ */
+public inline val <T> T.asResult: ApiResult<T> get() = ApiResult(this)

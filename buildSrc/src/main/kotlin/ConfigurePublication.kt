@@ -1,7 +1,6 @@
 @file:Suppress("MissingPackageDeclaration", "unused")
 
 import com.android.build.api.dsl.LibraryExtension
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 import com.android.build.gradle.tasks.BundleAar
 import org.gradle.api.Project
 import org.gradle.api.publish.PublishingExtension

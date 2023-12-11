@@ -17,7 +17,7 @@ object Config {
 
     const val majorRelease = 1
     const val minorRelease = 0
-    const val patch = 1
+    const val patch = 2
     const val postfix = ""
     const val versionName = "$majorRelease.$minorRelease.$patch$postfix"
     const val url = "https://github.com/respawn-app/ApiResult"
@@ -45,7 +45,6 @@ feature-rich.
         addAll(compilerArgs)
         add("-Xjvm-default=all") // enable all jvm optimizations
         add("-Xcontext-receivers")
-        // add("-Xuse-k2")
         addAll(optIns.map { "-opt-in=$it" })
     }
 

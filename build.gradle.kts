@@ -1,3 +1,5 @@
+import com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask
+import nl.littlerobots.vcu.plugin.versionCatalogUpdate
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -9,15 +11,10 @@ plugins {
     alias(libs.plugins.version.catalog.update)
     alias(libs.plugins.dokka)
     alias(libs.plugins.dependencyAnalysis)
-}
-
-buildscript {
-    dependencies {
-        classpath(libs.android.gradle)
-        classpath(libs.kotlin.gradle)
-        classpath(libs.version.gradle)
-        classpath(libs.detekt.gradle)
-    }
+    // plugins already on a classpath (conventions)
+    // alias(libs.plugins.androidApplication) apply false
+    // alias(libs.plugins.androidLibrary) apply false
+    // alias(libs.plugins.kotlinMultiplatform) apply false
 }
 
 allprojects {
@@ -27,7 +24,7 @@ allprojects {
         compilerOptions {
             jvmTarget.set(Config.jvmTarget)
             languageVersion.set(Config.kotlinVersion)
-            freeCompilerArgs.addAll(Config.compilerArgs)
+            freeCompilerArgs.apply { addAll(Config.jvmCompilerArgs) }
             optIn.addAll(Config.optIns.map { "-opt-in=$it" })
         }
     }
@@ -65,10 +62,8 @@ doctor {
 }
 
 dependencyAnalysis {
-    issues {
-        all {
-            ignoreKtx(true)
-        }
+    structure {
+        ignoreKtx(true)
     }
 }
 
@@ -124,7 +119,7 @@ tasks {
         autoCorrect = false
     }
 
-    withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask>().configureEach {
+    withType<DependencyUpdatesTask>().configureEach {
         outputFormatter = "json"
 
         fun stabilityLevel(version: String): Int {

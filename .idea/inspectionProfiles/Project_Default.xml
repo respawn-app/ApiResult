@@ -3,6 +3,9 @@
     <option name="myName" value="Project Default" />
     <inspection_tool class="AnimateAsStateLabel" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="AnimatedContentLabel" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="ConstPropertyName" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <option name="namePattern" value="[A-Za-z][_A-Z\d]*" />
+    </inspection_tool>
     <inspection_tool class="CrossfadeLabel" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="InfinitePropertiesLabel" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="InfiniteTransitionLabel" enabled="false" level="WARNING" enabled_by_default="false" />

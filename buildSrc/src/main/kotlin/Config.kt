@@ -45,6 +45,7 @@ feature-rich.
         addAll(compilerArgs)
         add("-Xjvm-default=all") // enable all jvm optimizations
         add("-Xcontext-receivers")
+        add("-Xstring-concat=inline")
         addAll(optIns.map { "-opt-in=$it" })
     }
 
@@ -52,8 +53,8 @@ feature-rich.
     val javaVersion = JavaVersion.VERSION_11
     val kotlinVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9
     const val compileSdk = 34
-    const val minSdk = 21
     const val targetSdk = compileSdk
+    const val minSdk = 21
     const val appMinSdk = 26
     const val publishingVariant = "release"
 
@@ -67,7 +68,6 @@ feature-rich.
     const val consumerProguardFile = "consumer-rules.pro"
 
     val stabilityLevels = listOf("preview", "eap", "alpha", "beta", "m", "cr", "rc")
-
     object Detekt {
 
         const val configFile = "detekt.yml"

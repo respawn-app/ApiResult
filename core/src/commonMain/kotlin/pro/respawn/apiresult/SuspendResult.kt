@@ -79,7 +79,7 @@ public inline fun <T> Loading.flow(
  * @see SuspendResult
  */
 public inline fun <T> Flow<T>.asApiResult(): Flow<ApiResult<T>> = this
-    .map { ApiResult(it) }
+    .map { it.asResult }
     .onStart { emit(Loading) }
     .catchExceptions { emit(Error(it)) }
 
@@ -97,11 +97,18 @@ public inline fun <T, R> Flow<ApiResult<T>>.mapResults(
  *
  * [ApiResult.Companion.invoke] already throws [CancellationException]s.
  */
-public inline fun <T> ApiResult<T>.rethrowCancellation(): ApiResult<T> =
-    recover<CancellationException, T> { throw it }
+public inline fun <T> ApiResult<T>.rethrowCancellation(): ApiResult<T> = rethrow<CancellationException, _>()
 
 /**
  * Invokes [block] each time [this] flow emits an [ApiResult.Success] value
  */
-public inline fun <T> Flow<ApiResult<T>>.onEachResult(crossinline block: suspend (T) -> Unit): Flow<ApiResult<T>> =
-    onEach { result -> result.onSuccess { block(it) } }
+public inline fun <T> Flow<ApiResult<T>>.onEachResult(
+    crossinline block: suspend (T) -> Unit
+): Flow<ApiResult<T>> = onEach { result -> result.onSuccess { block(it) } }
+
+/**
+ * Invokes [block] each time [this] flow emits an [ApiResult.Success] value
+ */
+public inline fun <T> Flow<ApiResult<T>>.onEachSuccess(
+    crossinline block: suspend (T) -> Unit
+): Flow<ApiResult<T>> = onEachResult(block)

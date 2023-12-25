@@ -19,7 +19,7 @@ import kotlin.jvm.JvmName
 public inline fun <T> ApiResult<Collection<T>>.orEmpty(): Collection<T> = or(emptyList())
 
 /**
- * Returns [emptyList] if [this]'s collection is empty
+ * Returns [emptyList] if [this]'s list is empty
  */
 public inline fun <T> ApiResult<List<T>>.orEmpty(): List<T> = or(emptyList())
 
@@ -70,7 +70,7 @@ public inline fun <T, R : Sequence<T>> ApiResult<R>.errorIfEmpty(
 /**
  * Executes [ApiResult.map] on each value of the collection
  */
-public inline fun <T, R> ApiResult<Iterable<T>>.mapValues(
+public inline infix fun <T, R> ApiResult<Iterable<T>>.mapValues(
     transform: (T) -> R
 ): ApiResult<List<R>> = map { it.map(transform) }
 
@@ -78,7 +78,7 @@ public inline fun <T, R> ApiResult<Iterable<T>>.mapValues(
  * Executes [ApiResult.map] on each value of the sequence
  */
 @JvmName("sequenceMapValues")
-public inline fun <T, R> ApiResult<Sequence<T>>.mapValues(
+public inline infix fun <T, R> ApiResult<Sequence<T>>.mapValues(
     noinline transform: (T) -> R
 ): ApiResult<Sequence<R>> = map { it.map(transform) }
 
@@ -113,8 +113,9 @@ public inline infix fun <T> Sequence<ApiResult<T>>.mapErrors(
 /**
  * Filter the underlying collection.
  */
-public inline infix fun <T : Iterable<R>, R> ApiResult<T>.filter(block: (R) -> Boolean): ApiResult<List<R>> =
-    map { it.filter(block) }
+public inline infix fun <T : Iterable<R>, R> ApiResult<T>.filter(
+    block: (R) -> Boolean
+): ApiResult<List<R>> = map { it.filter(block) }
 
 /**
  * Filter the underlying sequence.
@@ -190,20 +191,18 @@ public inline fun <T> Iterable<ApiResult<T>>.values(): List<T> = asSequence()
  * @see firstSuccessOrThrow
  */
 public inline fun <T> Iterable<ApiResult<T>>.firstSuccess(): ApiResult<T> =
-    ApiResult { (first { it is Success } as Success<T>).result }
+    ApiResult { asSequence().filterIsInstance<Success<T>>().first().result }
 
 /**
  * Return the first [Success] value, or throw if no success was found
  * @see firstSuccess
  * @see firstSuccessOrNull
  */
-public inline fun <T> Iterable<ApiResult<T>>.firstSuccessOrThrow(): T =
-    (first { it is Success } as Success<T>).orThrow()
+public inline fun <T> Iterable<ApiResult<T>>.firstSuccessOrThrow(): T = firstSuccess().orThrow()
 
 /**
  * Return the first [Success] value, or null if no success was found
  * @see firstSuccess
  * @see firstSuccessOrThrow
  */
-public inline fun <T> Iterable<ApiResult<T>>.firstSuccessOrNull(): T? =
-    (first { it is Success } as? Success<T>)?.orNull()
+public inline fun <T> Iterable<ApiResult<T>>.firstSuccessOrNull(): T? = firstSuccess().orNull()

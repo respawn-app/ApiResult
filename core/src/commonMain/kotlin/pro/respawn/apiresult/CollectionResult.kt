@@ -19,6 +19,11 @@ import kotlin.jvm.JvmName
 public inline fun <T> ApiResult<Collection<T>>.orEmpty(): Collection<T> = or(emptyList())
 
 /**
+ * Returns [emptyList] if [this]'s list is empty
+ */
+public inline fun <T> ApiResult<List<T>>.orEmpty(): List<T> = or(emptyList())
+
+/**
  * Returns [emptyList] if [this]'s collection is empty
  */
 public inline fun <T> ApiResult<Set<T>>.orEmpty(): Set<T> = or(emptySet())

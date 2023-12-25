@@ -186,7 +186,7 @@ public inline fun <T> Iterable<ApiResult<T>>.values(): List<T> = asSequence()
  * @see firstSuccessOrThrow
  */
 public inline fun <T> Iterable<ApiResult<T>>.firstSuccess(): ApiResult<T> =
-    ApiResult { (asSequence().filterIsInstance<Success<T>>().first()).result }
+    ApiResult { asSequence().filterIsInstance<Success<T>>().first().result }
 
 /**
  * Return the first [Success] value, or throw if no success was found

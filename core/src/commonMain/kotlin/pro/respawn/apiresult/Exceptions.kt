@@ -8,7 +8,7 @@ import pro.respawn.apiresult.ApiResult.Loading
  */
 public class NotFinishedException(
     message: String? = "ApiResult is still in the Loading state",
-) : IllegalArgumentException(message)
+) : IllegalStateException(message)
 
 /**
  * Exception representing unsatisfied condition when using [errorIf]

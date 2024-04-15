@@ -17,7 +17,7 @@ object Config {
 
     const val majorRelease = 1
     const val minorRelease = 0
-    const val patch = 3
+    const val patch = 4
     const val postfix = ""
     const val versionName = "$majorRelease.$minorRelease.$patch$postfix"
     const val url = "https://github.com/respawn-app/ApiResult"
@@ -68,6 +68,8 @@ feature-rich.
     const val consumerProguardFile = "consumer-rules.pro"
 
     val stabilityLevels = listOf("preview", "eap", "alpha", "beta", "m", "cr", "rc")
+    val minStabilityLevel = stabilityLevels.indexOf("beta")
+
     object Detekt {
 
         const val configFile = "detekt.yml"

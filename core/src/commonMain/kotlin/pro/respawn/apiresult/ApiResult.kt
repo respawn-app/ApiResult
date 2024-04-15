@@ -627,3 +627,16 @@ public inline val <T> T.asResult: ApiResult<T> get() = ApiResult(this)
  * Alias for [map] that takes [this] as a parameter
  */
 public inline infix fun <T, R> ApiResult<T>.apply(block: T.() -> R): ApiResult<R> = map(block)
+
+/**
+ * @return if [this] result value is [R], then returns it. If not, returns an [ApiResult.Error]
+ */
+public inline fun <reified R, T> ApiResult<T>.requireIs(
+    exception: (T) -> Exception = { value ->
+        "Result value is of type ${value?.let { it::class.simpleName }} but expected ${R::class}"
+            .let(::ConditionNotSatisfiedException)
+    },
+): ApiResult<R> = tryMap { value ->
+    if (value !is R) throw exception(value)
+    value
+}

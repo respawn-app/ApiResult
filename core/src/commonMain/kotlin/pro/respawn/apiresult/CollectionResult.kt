@@ -206,3 +206,37 @@ public inline fun <T> Iterable<ApiResult<T>>.firstSuccessOrThrow(): T = firstSuc
  * @see firstSuccessOrThrow
  */
 public inline fun <T> Iterable<ApiResult<T>>.firstSuccessOrNull(): T? = firstSuccess().orNull()
+
+/**
+ * Maps each value in the collection, wrapping each map operation in an [ApiResult]
+ */
+public inline fun <T, R> Sequence<T>.mapResulting(
+    crossinline map: (T) -> R
+): Sequence<ApiResult<R>> = map { ApiResult { map(it) } }
+
+/**
+ * Accumulates all errors from this collection and splits them into two lists:
+ * - First is the [ApiResult.Success] results
+ * - Seconds is [ApiResult.Error] or errors produced by [ApiResult.Loading] (see [ApiResult.errorOnLoading]
+ */
+public fun <T> Sequence<ApiResult<T>>.accumulate(): Pair<List<T>, List<Exception>> {
+    val (success, other) = partition { it.isSuccess }
+    return Pair(
+        success.map { (it as Success).result },
+        other.mapNotNull { it.errorOnLoading().exceptionOrNull() }
+    )
+}
+
+/**
+ * Maps each value in the collection, wrapping each map operation in an [ApiResult]
+ */
+public inline fun <T, R> Iterable<T>.mapResulting(
+    crossinline map: (T) -> R
+): List<ApiResult<R>> = map { ApiResult { map(it) } }
+
+/**
+ * Accumulates all errors from this collection and splits them into two lists:
+ * - First is the [ApiResult.Success] results
+ * - Seconds is [ApiResult.Error] or errors produced by [ApiResult.Loading] (see [ApiResult.errorOnLoading]
+ */
+public fun <T> Iterable<ApiResult<T>>.accumulate(): Pair<List<T>, List<Exception>> = asSequence().accumulate()

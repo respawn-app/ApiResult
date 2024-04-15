@@ -112,3 +112,13 @@ public inline fun <T> Flow<ApiResult<T>>.onEachResult(
 public inline fun <T> Flow<ApiResult<T>>.onEachSuccess(
     crossinline block: suspend (T) -> Unit
 ): Flow<ApiResult<T>> = onEachResult(block)
+
+/**
+ * Maps this flow to an [ApiResult.Success] value, otherwise throws the resulting error
+ */
+public fun <T> Flow<ApiResult<T>>.orThrow(): Flow<T> = map { it.orThrow() }
+
+/**
+ * Maps this flow to an [ApiResult.Success] value, otherwise the value is `null`
+ */
+public fun <T> Flow<ApiResult<T>>.orNull(): Flow<T?> = map { it.orNull() }

@@ -8,7 +8,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/respawn-app/ApiResult/badge)](https://www.codefactor.io/repository/github/respawn-app/ApiResult)
 [![AndroidWeekly #556](https://androidweekly.net/issues/issue-556/badge)](https://androidweekly.net/issues/issue-556/)
 
-![badge][badge-android] ![badge][badge-jvm] ![badge][badge-js] ![badge][badge-nodejs] ![badge][badge-linux] ![badge][badge-windows] ![badge][badge-wasm] ![badge][badge-ios] ![badge][badge-mac] ![badge][badge-watchos] ![badge][badge-tvos] ![badge-wasm]
+![badge][badge-android] ![badge][badge-jvm] ![badge][badge-js] ![badge][badge-nodejs] ![badge][badge-linux] ![badge][badge-windows] ![badge][badge-wasm] ![badge][badge-ios] ![badge][badge-mac] ![badge][badge-watchos] ![badge][badge-tvos]
 
 ApiResult is a Kotlin Multiplatform declarative error handling framework that is performant, easy to use and
 feature-rich.

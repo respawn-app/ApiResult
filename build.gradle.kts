@@ -66,7 +66,6 @@ dependencies {
     detektPlugins(rootProject.libs.detekt.libraries)
 }
 
-
 versionCatalogUpdate {
     sortByKey = true
 

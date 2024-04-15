@@ -68,6 +68,8 @@ feature-rich.
     const val consumerProguardFile = "consumer-rules.pro"
 
     val stabilityLevels = listOf("preview", "eap", "alpha", "beta", "m", "cr", "rc")
+    val minStabilityLevel = stabilityLevels.indexOf("beta")
+
     object Detekt {
 
         const val configFile = "detekt.yml"

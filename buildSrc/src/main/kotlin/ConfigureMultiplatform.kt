@@ -4,7 +4,10 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.getting
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
+@OptIn(ExperimentalWasmDsl::class)
+@Suppress("LongParameterList", "CyclomaticComplexMethod")
 fun Project.configureMultiplatform(
     ext: KotlinMultiplatformExtension,
     jvm: Boolean = true,
@@ -14,7 +17,8 @@ fun Project.configureMultiplatform(
     js: Boolean = true,
     tvOs: Boolean = true,
     macOs: Boolean = true,
-    watchOs: Boolean = true
+    watchOs: Boolean = true,
+    wasm: Boolean = true,
 ) = ext.apply {
     val libs by versionCatalog
     explicitApi()
@@ -25,6 +29,13 @@ fun Project.configureMultiplatform(
         linuxX64()
         linuxArm64()
         mingwX64()
+    }
+
+    if (wasm) wasmJs {
+        moduleName = this@configureMultiplatform.name
+        nodejs()
+        browser()
+        binaries.library()
     }
 
     if (js) {

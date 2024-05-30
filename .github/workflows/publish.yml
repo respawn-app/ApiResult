@@ -64,7 +64,6 @@ jobs:
           draft: true
           artifactErrorsFailBuild: true
           prerelease: false
-          artifacts: sample/build/outputs/apk/release/pro.respawn.flowmvi.sample.apk
           body: ${{steps.build_changelog.outputs.changelog}}
           tag: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
         env:

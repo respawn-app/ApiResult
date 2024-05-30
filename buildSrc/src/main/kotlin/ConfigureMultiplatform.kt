@@ -49,7 +49,9 @@ fun Project.configureMultiplatform(
         binaries.library()
     }
 
-    if (wasmWasi) wasmWasi()
+    if (wasmWasi) wasmWasi {
+        nodejs()
+    }
 
     if (android) androidTarget {
         publishLibraryVariants("release")

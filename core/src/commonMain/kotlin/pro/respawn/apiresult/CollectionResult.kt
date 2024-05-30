@@ -162,18 +162,21 @@ public inline fun <T> Sequence<ApiResult<T?>>.filterNulls(): Sequence<ApiResult<
  */
 public inline fun <T> Iterable<ApiResult<T>>.merge(): ApiResult<List<T>> = ApiResult { map { !it } }
 
+
 /**
  * Merges all [results] into a single [List], or if any has failed, returns [Error].
  */
-public inline fun <T> ApiResult.Loading.merge(vararg results: ApiResult<T>): ApiResult<List<T>> =
-    results.asIterable().merge()
+public inline fun <T> merge(vararg results: ApiResult<T>): ApiResult<List<T>> = results.asIterable().merge()
 
 /**
  * Merges [this] results and all other [results] into a single result of type [T].
  */
 public inline fun <T> ApiResult<T>.merge(
     vararg results: ApiResult<T>
-): ApiResult<List<T>> = ApiResult.merge(this, *results)
+): ApiResult<List<T>> = sequence {
+    yield(this@merge)
+    yieldAll(results.iterator())
+}.asIterable().merge()
 
 /**
  * Returns a list of only [Success] values, discarding any errors
@@ -215,6 +218,13 @@ public inline fun <T, R> Sequence<T>.mapResulting(
 ): Sequence<ApiResult<R>> = map { ApiResult { map(it) } }
 
 /**
+ * Maps each value in the collection, wrapping each map operation in an [ApiResult]
+ */
+public inline fun <T, R> Iterable<T>.mapResulting(
+    crossinline map: (T) -> R
+): List<ApiResult<R>> = map { ApiResult { map(it) } }
+
+/**
  * Accumulates all errors from this collection and splits them into two lists:
  * - First is the [ApiResult.Success] results
  * - Seconds is [ApiResult.Error] or errors produced by [ApiResult.Loading] (see [ApiResult.errorOnLoading]
@@ -226,13 +236,6 @@ public fun <T> Sequence<ApiResult<T>>.accumulate(): Pair<List<T>, List<Exception
         other.mapNotNull { it.errorOnLoading().exceptionOrNull() }
     )
 }
-
-/**
- * Maps each value in the collection, wrapping each map operation in an [ApiResult]
- */
-public inline fun <T, R> Iterable<T>.mapResulting(
-    crossinline map: (T) -> R
-): List<ApiResult<R>> = map { ApiResult { map(it) } }
 
 /**
  * Accumulates all errors from this collection and splits them into two lists:

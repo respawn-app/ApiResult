@@ -16,8 +16,8 @@ object Config {
     const val artifactId = "$group.$artifact"
 
     const val majorRelease = 1
-    const val minorRelease = 0
-    const val patch = 4
+    const val minorRelease = 1
+    const val patch = 0
     const val postfix = ""
     const val versionName = "$majorRelease.$minorRelease.$patch$postfix"
     const val url = "https://github.com/respawn-app/ApiResult"

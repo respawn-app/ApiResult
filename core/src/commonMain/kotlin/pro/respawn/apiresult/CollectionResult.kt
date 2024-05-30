@@ -162,7 +162,6 @@ public inline fun <T> Sequence<ApiResult<T?>>.filterNulls(): Sequence<ApiResult<
  */
 public inline fun <T> Iterable<ApiResult<T>>.merge(): ApiResult<List<T>> = ApiResult { map { !it } }
 
-
 /**
  * Merges all [results] into a single [List], or if any has failed, returns [Error].
  */

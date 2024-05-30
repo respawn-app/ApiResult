@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.version.catalog.update)
     alias(libs.plugins.dokka)
     alias(libs.plugins.atomicfu)
+    alias(libs.plugins.compose.compiler) apply false
     // plugins already on a classpath (conventions)
     // alias(libs.plugins.androidApplication) apply false
     // alias(libs.plugins.androidLibrary) apply false
@@ -22,7 +23,6 @@ allprojects {
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(Config.jvmTarget)
-            languageVersion.set(Config.kotlinVersion)
             freeCompilerArgs.apply { addAll(Config.jvmCompilerArgs) }
             optIn.addAll(Config.optIns.map { "-opt-in=$it" })
         }

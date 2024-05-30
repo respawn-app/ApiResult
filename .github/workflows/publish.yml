@@ -10,7 +10,6 @@ on:
         required: true
         type: string
         description: 'Tag to use for the release and changelog'
-      - '2.*'
 
 concurrency:
   group: "publish"

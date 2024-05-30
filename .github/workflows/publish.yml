@@ -1,9 +1,15 @@
-name: Publishing
+name: Publish a new Release
 
 on:
   push:
     tags:
-      - '1.*'
+      - '2.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+        description: 'Tag to use for the release and changelog'
       - '2.*'
 
 concurrency:

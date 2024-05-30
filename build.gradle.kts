@@ -1,6 +1,9 @@
 import nl.littlerobots.vcu.plugin.versionCatalogUpdate
 import nl.littlerobots.vcu.plugin.versionSelector
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradleSubplugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -20,6 +23,19 @@ plugins {
 allprojects {
     group = Config.artifactId
     version = Config.versionName
+    plugins.withType<ComposeCompilerGradleSubplugin>().configureEach {
+        the<ComposeCompilerGradlePluginExtension>().apply {
+            enableIntrinsicRemember = true
+            enableNonSkippingGroupOptimization = true
+            enableStrongSkippingMode = true
+            stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_definitions.txt")
+            if (properties["enableComposeCompilerReports"] == "true") {
+                val metricsDir = layout.buildDirectory.dir("compose_metrics")
+                metricsDestination = metricsDir
+                reportsDestination = metricsDir
+            }
+        }
+    }
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             jvmTarget.set(Config.jvmTarget)
@@ -115,8 +131,10 @@ tasks {
     }
 }
 
-extensions.findByType<YarnRootExtension>()?.run {
-    yarnLockMismatchReport = YarnLockMismatchReport.WARNING
-    reportNewYarnLock = true
-    yarnLockAutoReplace = false
+rootProject.plugins.withType<YarnPlugin>().configureEach {
+    rootProject.the<YarnRootExtension>().apply {
+        yarnLockMismatchReport = YarnLockMismatchReport.WARNING // NONE | FAIL | FAIL_AFTER_BUILD
+        reportNewYarnLock = true
+        yarnLockAutoReplace = true
+    }
 }

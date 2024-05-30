@@ -5,30 +5,36 @@
     "unused",
     "NOTHING_TO_INLINE",
     "TooManyFunctions",
-    "ThrowingExceptionsWithoutMessageOrCause",
+    "ThrowingExceptionsWithoutMessageOrCause", "UNCHECKED_CAST",
 )
 
 package pro.respawn.apiresult
 
+import pro.respawn.apiresult.ApiResult.Companion.Error
+import pro.respawn.apiresult.ApiResult.Companion.Success
 import pro.respawn.apiresult.ApiResult.Error
 import pro.respawn.apiresult.ApiResult.Loading
-import pro.respawn.apiresult.ApiResult.Success
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.jvm.JvmField
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmName
 
 /**
  * A class that represents a result of an operation.
  *
- * This class is **efficient**: no actual objects are created unless dynamic type resolution is required,
- * all operations are inlined and no function resolution is performed.
+ * This class is **efficient**:
+ * * no actual objects are created,
+ * * all operations are inlined
+ * * no function resolution is performed.
+ *
  * ApiResult is **not** an Rx-style callback chain -
  * the operators that are invoked are called **immediately** and in-place.
  */
-public sealed interface ApiResult<out T> {
+@JvmInline
+public value class ApiResult<out T> @PublishedApi internal constructor(@PublishedApi internal val value: Any?) {
 
     /**
      * Get the [Success] component of this result or null
@@ -59,46 +65,68 @@ public sealed interface ApiResult<out T> {
     public operator fun not(): T = orThrow()
 
     /**
-     * A value of [ApiResult] for its successful state.
-     * @param result a successful result value
-     */
-    @JvmInline
-    public value class Success<out T>(public val result: T) : ApiResult<T> {
-
-        override fun toString(): String = "ApiResult.Success: $result"
-    }
-
-    /**
      * The state of [ApiResult] that represents an error.
      * @param e wrapped [Exception]
      */
     @JvmInline
-    public value class Error(public val e: Exception) : ApiResult<Nothing> {
+    @PublishedApi
+    internal value class Error(@JvmField val e: Exception) {
 
-        override fun toString(): String = "ApiResult.Error: message=$message and cause: $e"
+        override fun toString(): String = "ApiResult.Error: message=${e.message} and cause: $e"
     }
+
+    @PublishedApi
+    internal data object Loading
 
     /**
      * Whether this is [Success]
      */
-    public val isSuccess: Boolean get() = this is Success
+    public inline val isSuccess: Boolean get() = !isError && !isLoading
 
     /**
      *  Whether this is [Error]
      */
-    public val isError: Boolean get() = this is Error
+    public inline val isError: Boolean get() = value is Error
 
     /**
      * Whether this is [Loading]
      */
-    public val isLoading: Boolean get() = this is Loading
+    public inline val isLoading: Boolean get() = value is Loading
 
-    /**
-     * A loading state of an [ApiResult]
-     */
-    public data object Loading : ApiResult<Nothing>
+    override fun toString(): String = when {
+        value is Error || value is Loading -> value.toString()
+        else -> "ApiResult.Success: $value"
+    }
 
     public companion object {
+
+        /**
+         * Create a successful [ApiResult] value
+         */
+        public inline fun <T> Success(value: T): ApiResult<T> = ApiResult(value)
+
+        /**
+         * Create an error [ApiResult] value
+         */
+        public inline fun <T> Error(value: Exception): ApiResult<T> = ApiResult(Error(e = value))
+
+        /**
+         * Create a loading [ApiResult] value
+         */
+        public inline fun <T> Loading(): ApiResult<T> = ApiResult(value = Loading)
+
+        /**
+         * Create an [ApiResult] instance using the given value.
+         * When [value] is an Exception, an error result will be created.
+         * Otherwise, a success result will be created.
+         *
+         * If you want to directly create a success value of an [Exception], use [Success]
+         */
+        public inline operator fun <T> invoke(value: T): ApiResult<T> = when (value) {
+            is Exception -> Error(value = value)
+            else -> Success(value)
+        }
+
         /**
          * Execute [call], catching any exceptions, and wrap it in an [ApiResult].
          *
@@ -115,19 +143,7 @@ public sealed interface ApiResult<out T> {
         }
 
         /**
-         *  * If [T] is an exception, will produce [ApiResult.Error]
-         *  * If [T] is Loading, will produce [ApiResult.Loading]
-         *  * Otherwise [ApiResult.Success].
-         *  @see asResult
-         */
-        public inline operator fun <T> invoke(value: T): ApiResult<T> = when (value) {
-            is Loading -> value
-            is Exception -> Error(value)
-            else -> Success(value)
-        }
-
-        /**
-         * Returns an [Success] (Unit) value.
+         * Returns an [ApiResult](Unit) value.
          * Use this for applying operators such as `require` and `mapWrapping` to build chains of operators that should
          * start with an empty value.
          */
@@ -138,42 +154,43 @@ public sealed interface ApiResult<out T> {
 /**
  * [ApiResult.Error.e]'s stack trace as string
  */
-public inline val Error.stackTrace: String get() = e.stackTraceToString()
+public inline val ApiResult<*>.stackTrace: String? get() = exceptionOrNull()?.stackTraceToString()
 
 /**
  * [ApiResult.Error.e]'s cause
  */
-public inline val Error.cause: Throwable? get() = e.cause
+public inline val ApiResult<*>.cause: Throwable? get() = exceptionOrNull()?.cause
 
 /**
  * [ApiResult.Error.e]'s message.
  */
-public inline val Error.message: String? get() = e.message
+public inline val ApiResult<*>.message: String? get() = exceptionOrNull()?.message
 
 /**
  * Execute [block] wrapping it in an [ApiResult]
  * @see ApiResult.invoke
  */
-public inline fun <T, R> T.runResulting(block: T.() -> R): ApiResult<R> = ApiResult { block() }
+public inline fun <T, R> T.runResulting(block: T.() -> R): ApiResult<R> = ApiResult(call = { block() })
 
 /**
  * Executes [block], wrapping it in an [ApiResult]
  * @see ApiResult.invoke
  */
-public inline fun <T> runResulting(block: () -> T): ApiResult<T> = ApiResult { block() }
+public inline fun <T> runResulting(block: () -> T): ApiResult<T> = ApiResult(call = { block() })
 
 /**
- * Executes [block] if [this] is an [ApiResult.Error], otherwise returns [ApiResult.Success.result]
+ * Executes [block] if [this] is an [ApiResult.Error], otherwise returns [ApiResult.value]
  * [Loading] will result in [NotFinishedException]
  */
+@Suppress("UNCHECKED_CAST")
 public inline infix fun <T, R : T> ApiResult<T>.orElse(block: (e: Exception) -> R): T {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Success -> result
-        is Error -> block(e)
+    return when (value) {
+        is Error -> block(value.e)
         is Loading -> block(NotFinishedException())
+        else -> value as T
     }
 }
 
@@ -191,17 +208,13 @@ public inline fun <T> ApiResult<T>?.orNull(): T? = this?.or(null)
 /**
  * @return exception if [this] is [Error] or null
  */
-public inline fun <T> ApiResult<T>?.exceptionOrNull(): Exception? = (this as? Error)?.e
+public inline fun <T> ApiResult<T>?.exceptionOrNull(): Exception? = (this?.value as? Error)?.e
 
 /**
  * Throws [ApiResult.Error.e], or [NotFinishedException] if the request has not been completed yet.
  * @see ApiResult.not
  */
-public inline fun <T> ApiResult<T>.orThrow(): T = when (this) {
-    is Loading -> throw NotFinishedException()
-    is Error -> throw e
-    is Success -> result
-}
+public inline fun <T> ApiResult<T>.orThrow(): T = orElse { throw it }
 
 /**
  * Throws if [this] result is an [Error] and [Error.e] is of type [T]. Ignores all other exceptions.
@@ -214,6 +227,7 @@ public inline fun <reified T : Exception, R> ApiResult<R>.rethrow(): ApiResult<R
  * Fold [this] returning the result of [onSuccess] or [onError]
  * By default, maps [Loading] to [Error] with [NotFinishedException]
  */
+@Suppress("UNCHECKED_CAST")
 public inline fun <T, R> ApiResult<T>.fold(
     onSuccess: (result: T) -> R,
     onError: (e: Exception) -> R,
@@ -223,10 +237,10 @@ public inline fun <T, R> ApiResult<T>.fold(
         callsInPlace(onSuccess, InvocationKind.AT_MOST_ONCE)
         callsInPlace(onError, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Success -> onSuccess(result)
-        is Error -> onError(e)
+    return when (value) {
+        is Error -> onError(value.e)
         is Loading -> onLoading?.invoke() ?: onError(NotFinishedException())
+        else -> onSuccess(value as T)
     }
 }
 
@@ -239,7 +253,7 @@ public inline infix fun <T> ApiResult<T>.onError(block: (Exception) -> Unit): Ap
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    if (this is Error) block(e)
+    if (value is Error) block(value.e)
     return this
 }
 
@@ -247,12 +261,8 @@ public inline infix fun <T> ApiResult<T>.onError(block: (Exception) -> Unit): Ap
  * Invoke a given block if [this] is [Error] and it's [Error.e] is of type [E].
  */
 @JvmName("onErrorTyped")
-public inline infix fun <reified E : Exception, T> ApiResult<T>.onError(block: (E) -> Unit): ApiResult<T> {
-    contract {
-        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
-    }
-    if (this is Error && e is E) block(e)
-    return this
+public inline infix fun <reified E : Exception, T> ApiResult<T>.onError(block: (E) -> Unit): ApiResult<T> = onError {
+    if (it is E) block(it)
 }
 
 /**
@@ -264,7 +274,7 @@ public inline infix fun <T> ApiResult<T>.onSuccess(block: (T) -> Unit): ApiResul
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    if (this is Success) block(result)
+    if (isSuccess) block(value as T)
     return this
 }
 
@@ -277,7 +287,7 @@ public inline infix fun <T> ApiResult<T>.onLoading(block: () -> Unit): ApiResult
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    if (this is Loading) block()
+    if (isLoading) block()
     return this
 }
 
@@ -302,7 +312,7 @@ public inline fun <T> ApiResult<T>.errorIf(
         callsInPlace(predicate, InvocationKind.AT_MOST_ONCE)
         callsInPlace(exception, InvocationKind.AT_MOST_ONCE)
     }
-    return if (this is Success && predicate(result)) Error(exception()) else this
+    return if (isSuccess && predicate(value as T)) Error(value = exception()) else this
 }
 
 /**
@@ -313,11 +323,10 @@ public inline fun <T> ApiResult<T>.errorOnLoading(
 ): ApiResult<T> {
     contract {
         callsInPlace(exception, InvocationKind.AT_MOST_ONCE)
-        returns() implies (this@errorOnLoading !is Loading)
     }
 
-    return when (this) {
-        is Loading -> Error(exception())
+    return when (value) {
+        is Loading -> Error(value = exception())
         else -> this
     }
 }
@@ -331,7 +340,7 @@ public inline fun <T> ApiResult<T?>?.requireNotNull(): ApiResult<T & Any> = erro
  * Throws if [this] is not [Success] and returns [Success] otherwise.
  * @see orThrow
  */
-public inline fun <T> ApiResult<T>.require(): Success<T> = Success(!this)
+public inline fun <T> ApiResult<T>.require(): ApiResult<T> = Success(!this)
 
 /**
  * Change the type of the [Success] to [R] without affecting [Error]/[Loading] results
@@ -343,11 +352,11 @@ public inline infix fun <T, R> ApiResult<T>.map(block: (T) -> R): ApiResult<R> {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Success -> Success(block(result))
-        is Error -> Error(e)
-        is Loading -> this
-    }
+    return fold(
+        onSuccess = { Success(value = block(it)) },
+        onError = { Error(value = it) },
+        onLoading = { ApiResult.Loading() }
+    )
 }
 
 /**
@@ -358,10 +367,10 @@ public inline fun <T, R> ApiResult<T>.mapOrDefault(default: () -> R, transform: 
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
         callsInPlace(default, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Success -> transform(result)
-        else -> default()
-    }
+    return fold(
+        onSuccess = { transform(it) },
+        onError = { default() }
+    )
 }
 
 /**
@@ -370,11 +379,10 @@ public inline fun <T, R> ApiResult<T>.mapOrDefault(default: () -> R, transform: 
 public inline fun <T, R> ApiResult<T>.mapEither(
     success: (T) -> R,
     error: (Exception) -> Exception,
-): ApiResult<R> = when (this) {
-    is Error -> Error(error(e))
-    is Loading -> this
-    is Success -> Success(success(result))
-}
+): ApiResult<R> = fold(
+    onSuccess = { Success(success(it)) },
+    onError = { Error(value = error(it)) }
+)
 
 /**
  * Maps [Loading] to a [Success], not affecting other states.
@@ -386,10 +394,7 @@ public inline infix fun <T, R : T> ApiResult<T>.mapLoading(block: () -> R): ApiR
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Success, is Error -> this
-        is Loading -> Success(block())
-    }
+    return if (isLoading) Success(block()) else this
 }
 
 /**
@@ -409,7 +414,7 @@ public inline infix fun <reified R : Exception, T> ApiResult<T>.mapError(block: 
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
     return when {
-        this is Error && e is R -> Error(block(e))
+        value is Error && value.e is R -> Error(value = block(value.e))
         else -> this
     }
 }
@@ -424,8 +429,8 @@ public inline fun <T> ApiResult<T>.mapErrorToCause(): ApiResult<T> = mapError { 
  */
 public inline fun <T> ApiResult<ApiResult<T>>.unwrap(): ApiResult<T> = fold(
     onSuccess = { it },
-    onError = { Error(it) },
-    onLoading = { Loading }
+    onError = { Error(value = it) },
+    onLoading = { ApiResult.Loading() },
 )
 
 /**
@@ -435,8 +440,9 @@ public inline fun <T> ApiResult<ApiResult<T>>.unwrap(): ApiResult<T> = fold(
  * @see mapError
  * @see mapLoading
  */
-public inline infix fun <T, R> ApiResult<T>.tryMap(block: (T) -> R): ApiResult<R> =
-    map { ApiResult { block(it) } }.unwrap()
+public inline infix fun <T, R> ApiResult<T>.tryMap(
+    block: (T) -> R
+): ApiResult<R> = map { ApiResult(call = { block(it) }) }.unwrap()
 
 /**
  * Make this result an [Error] if [Success] value was null.
@@ -450,19 +456,19 @@ public inline fun <T> ApiResult<T?>?.errorOnNull(
     contract {
         returns() implies (this@errorOnNull != null)
     }
-    return this?.errorIf(exception) { it == null }?.map { it!! } ?: Error(exception())
+    return when (this?.value) {
+        is Error -> Error(value = value.e)
+        is Loading -> ApiResult.Loading()
+        null -> Error(value = exception())
+        else -> ApiResult(value = value)
+    }
 }
 
 /**
  * Maps [Error] values to nulls
  * @see orNull
  */
-public inline fun <T> ApiResult<T>.nullOnError(): ApiResult<T?> {
-    contract {
-        returns() implies (this@nullOnError !is Error)
-    }
-    return if (this is Error) Success(null) else this
-}
+public inline fun <T> ApiResult<T>.nullOnError(): ApiResult<T?> = if (isError) Success(null) else this
 
 /**
  * Recover from an exception of type [R], else no-op.
@@ -475,7 +481,7 @@ public inline fun <T> ApiResult<T>.nullOnError(): ApiResult<T?> {
 public inline infix fun <reified T : Exception, R> ApiResult<R>.recover(
     another: (e: T) -> ApiResult<R>
 ): ApiResult<R> = when {
-    this is Error && e is T -> another(e)
+    value is Error && value.e is T -> another(value.e)
     else -> this
 }
 
@@ -483,19 +489,16 @@ public inline infix fun <reified T : Exception, R> ApiResult<R>.recover(
  * Recover from an exception. Does not affect [Loading]
  * See also the typed version of this function to recover from a specific exception type
  */
-public inline infix fun <T> ApiResult<T>.recover(another: (e: Exception) -> ApiResult<T>): ApiResult<T> {
-    contract {
-        returns() implies (this@recover !is Error)
-    }
-    return recover<Exception, T>(another)
-}
+public inline infix fun <T> ApiResult<T>.recover(
+    another: (e: Exception) -> ApiResult<T>
+): ApiResult<T> = recover<Exception, T>(another)
 
 /**
  * calls [recover] catching and wrapping any exceptions thrown inside [block].
  */
 @JvmName("tryRecoverTyped")
 public inline infix fun <reified T : Exception, R> ApiResult<R>.tryRecover(block: (T) -> R): ApiResult<R> =
-    recover<T, R>(another = { ApiResult { block(it) } })
+    recover<T, R>(another = { ApiResult(call = { block(it) }) })
 
 /**
  * Calls [recover] catching and wrapping any exceptions thrown inside [block].
@@ -503,12 +506,7 @@ public inline infix fun <reified T : Exception, R> ApiResult<R>.tryRecover(block
  */
 public inline infix fun <T> ApiResult<T>.tryRecover(
     block: (e: Exception) -> T
-): ApiResult<T> {
-    contract {
-        returns() implies (this@tryRecover !is Error)
-    }
-    return tryRecover<Exception, T>(block)
-}
+): ApiResult<T> = tryRecover<Exception, T>(block)
 
 /**
  * Recover from an [Error] only if the [condition] is true, else no-op.
@@ -518,7 +516,7 @@ public inline infix fun <T> ApiResult<T>.tryRecover(
 public inline fun <T> ApiResult<T>.tryRecoverIf(
     condition: (Exception) -> Boolean,
     block: (Exception) -> T,
-): ApiResult<T> = recoverIf(condition) { ApiResult { block(it) } }
+): ApiResult<T> = recoverIf(condition) { ApiResult(call = { block(it) }) }
 
 /**
  * Recover from an [Error] only if the [condition] is true, else no-op.
@@ -534,8 +532,8 @@ public inline fun <T> ApiResult<T>.recoverIf(
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
     return when {
-        this is Error && condition(e) -> block(e)
-        else -> this
+        value is Error && condition(value.e) -> block(value.e)
+        else -> ApiResult(value = value)
     }
 }
 
@@ -550,10 +548,7 @@ public inline infix fun <T> ApiResult<T>.chain(another: (T) -> ApiResult<*>): Ap
     contract {
         callsInPlace(another, InvocationKind.AT_MOST_ONCE)
     }
-    return when (this) {
-        is Loading, is Error -> this
-        is Success -> another(result).map { result }
-    }
+    return map { outer -> another(outer).map { outer } }.unwrap()
 }
 
 /**
@@ -566,8 +561,9 @@ public inline infix fun <T> ApiResult<T>.chain(another: (T) -> ApiResult<*>): Ap
  * @see [ApiResult.chain]
  * @see [ApiResult.then]
  */
-public inline infix fun <T> ApiResult<T>.tryChain(block: (T) -> Unit): ApiResult<T> =
-    chain(another = { ApiResult { block(it) } })
+public inline infix fun <T> ApiResult<T>.tryChain(
+    block: (T) -> Unit
+): ApiResult<T> = chain(another = { ApiResult(call = { block(it) }) })
 
 /**
  * Call [another] and if it succeeds, continue with [another]'s result.
@@ -628,7 +624,7 @@ public inline infix fun <T, R> ApiResult<T>.apply(block: T.() -> R): ApiResult<R
  */
 public inline fun <reified R, T> ApiResult<T>.requireIs(
     exception: (T) -> Exception = { value ->
-        "Result value is of type ${value?.let { it::class.simpleName }} but expected ${R::class}"
+        "Result value is of type ${value?.let { it::class.simpleName }} but expected ${R::class.simpleName}"
             .let(::ConditionNotSatisfiedException)
     },
 ): ApiResult<R> = tryMap { value ->

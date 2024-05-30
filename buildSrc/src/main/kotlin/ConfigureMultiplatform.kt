@@ -3,11 +3,12 @@
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.getting
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
-@OptIn(ExperimentalWasmDsl::class)
-@Suppress("LongParameterList", "CyclomaticComplexMethod")
+@OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 fun Project.configureMultiplatform(
     ext: KotlinMultiplatformExtension,
     jvm: Boolean = true,
@@ -18,43 +19,45 @@ fun Project.configureMultiplatform(
     tvOs: Boolean = true,
     macOs: Boolean = true,
     watchOs: Boolean = true,
-    wasm: Boolean = true,
+    windows: Boolean = true,
+    wasmJs: Boolean = true,
+    wasmWasi: Boolean = true,
+    configure: KotlinHierarchyBuilder.Root.() -> Unit = {},
 ) = ext.apply {
     val libs by versionCatalog
     explicitApi()
-    applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyTemplate(configure)
     withSourcesJar(true)
 
     if (linux) {
         linuxX64()
         linuxArm64()
-        mingwX64()
     }
 
-    if (wasm) wasmJs {
+    if (windows) mingwX64()
+
+    if (js) js(IR) {
+        browser()
+        nodejs()
+        binaries.library()
+    }
+
+    if (wasmJs) wasmJs {
         moduleName = this@configureMultiplatform.name
         nodejs()
         browser()
         binaries.library()
     }
 
-    if (js) {
-        js(IR) {
-            browser()
-            nodejs()
-            binaries.library()
-        }
+    if (wasmWasi) wasmWasi {
+        nodejs()
     }
 
-    if (android) {
-        androidTarget {
-            publishAllLibraryVariants()
-        }
+    if (android) androidTarget {
+        publishLibraryVariants("release")
     }
 
-    if (jvm) {
-        jvm()
-    }
+    if (jvm) jvm()
 
     sequence {
         if (iOs) {
@@ -77,13 +80,7 @@ fun Project.configureMultiplatform(
             yield(watchosDeviceArm64())
             yield(watchosSimulatorArm64())
         }
-    }.forEach {
-        it.binaries.framework {
-            binaryOption("bundleId", Config.artifactId)
-            binaryOption("bundleVersion", Config.versionName)
-            baseName = Config.artifactId
-        }
-    }
+    }.toList() // for now, do nothing, but iterate the lazy sequence
 
     sourceSets.apply {
         if (jvm) {
@@ -96,7 +93,6 @@ fun Project.configureMultiplatform(
         all {
             languageSettings {
                 progressiveMode = true
-                languageVersion = Config.kotlinVersion.version
                 Config.optIns.forEach { optIn(it) }
             }
         }

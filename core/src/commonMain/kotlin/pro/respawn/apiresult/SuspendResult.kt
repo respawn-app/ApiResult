@@ -53,7 +53,7 @@ public suspend inline fun <T> SuspendResult(
  * Emits [ApiResult.Loading], then executes [call] and wraps it.
  * @see Flow.asApiResult
  */
-public inline fun <T> Loading.tryFlow(
+public inline fun <T> ApiResult.Companion.tryFlow(
     crossinline call: suspend () -> T
 ): Flow<ApiResult<T>> = kotlinx.coroutines.flow.flow {
     emit(Loading)
@@ -65,7 +65,7 @@ public inline fun <T> Loading.tryFlow(
  * @see Flow.asApiResult
  */
 @JvmName("flowWithResult")
-public inline fun <T> Loading.flow(
+public inline fun <T> ApiResult.Companion.flow(
     crossinline result: suspend () -> ApiResult<T>,
 ): Flow<ApiResult<T>> = kotlinx.coroutines.flow.flow {
     emit(Loading)

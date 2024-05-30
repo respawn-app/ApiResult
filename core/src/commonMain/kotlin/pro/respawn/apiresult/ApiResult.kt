@@ -6,8 +6,6 @@
     "NOTHING_TO_INLINE",
     "TooManyFunctions",
     "ThrowingExceptionsWithoutMessageOrCause",
-    "INVISIBLE_REFERENCE",
-    "INVISIBLE_MEMBER",
 )
 
 package pro.respawn.apiresult
@@ -98,12 +96,9 @@ public sealed interface ApiResult<out T> {
     /**
      * A loading state of an [ApiResult]
      */
-    public companion object Loading : ApiResult<Nothing> {
+    public data object Loading : ApiResult<Nothing>
 
-        override fun equals(other: Any?): Boolean = other is Loading
-        override fun hashCode(): Int = 42
-        override fun toString(): String = "ApiResult.Loading"
-
+    public companion object {
         /**
          * Execute [call], catching any exceptions, and wrap it in an [ApiResult].
          *

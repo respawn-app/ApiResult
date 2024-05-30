@@ -2,10 +2,11 @@ plugins {
     id("com.android.application")
     kotlin("android")
     id("kotlin-parcelize")
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
-    configureAndroid(this)
+    configureAndroid()
 
     namespace = "${Config.namespace}.sample"
     compileSdk = Config.compileSdk
@@ -22,11 +23,7 @@ android {
         compose = true
     }
     kotlinOptions {
-        freeCompilerArgs += Config.jvmCompilerArgs +
-            "-P" +
-            "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
         jvmTarget = Config.jvmTarget.target
-        languageVersion = Config.kotlinVersion.version
     }
 }
 

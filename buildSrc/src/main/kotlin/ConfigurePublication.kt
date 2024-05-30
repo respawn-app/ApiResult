@@ -16,25 +16,24 @@ import org.gradle.plugins.signing.Sign
  * Configures Maven publishing to sonatype for this project
  */
 fun Project.publishMultiplatform() {
-    val properties by localProperties
+    val properties = localProperties()
     val isReleaseBuild = properties["release"]?.toString().toBoolean()
-
-    val javadocTask = tasks.named("emptyJavadocJar") // TODO: Dokka does not support KMP javadocs for now
+    val javadocTask = tasks.named("emptyJavadocJar") // TODO: dokka does not support kmp javadocs yet
 
     afterEvaluate {
         requireNotNull(extensions.findByType<PublishingExtension>()).apply {
-            sonatypeRepository(isReleaseBuild, properties)
-
             publications.withType<MavenPublication>().configureEach {
+                groupId = rootProject.group.toString()
                 artifact(javadocTask)
                 configurePom()
                 configureVersion(isReleaseBuild)
             }
+            sonatypeRepository(isReleaseBuild, properties)
         }
         signPublications(isReleaseBuild, properties)
     }
 
-    tasks.withType<AbstractPublishToMaven> {
+    tasks.withType<AbstractPublishToMaven>().configureEach {
         dependsOn(javadocTask)
     }
 }
@@ -43,6 +42,8 @@ fun Project.publishMultiplatform() {
  * Publish the android artifact
  */
 fun Project.publishAndroid(ext: LibraryExtension) = with(ext) {
+    val properties = localProperties()
+    val isReleaseBuild = properties["release"]?.toString().toBoolean()
     publishing {
         singleVariant(Config.publishingVariant) {
             withSourcesJar()
@@ -51,26 +52,21 @@ fun Project.publishAndroid(ext: LibraryExtension) = with(ext) {
     }
 
     afterEvaluate {
-        val properties by localProperties
-        val isReleaseBuild = properties["release"]?.toString().toBoolean()
-
         requireNotNull(extensions.findByType<PublishingExtension>()).apply {
-            sonatypeRepository(isReleaseBuild, properties)
-
-            publications {
-                maybeCreate(Config.publishingVariant, MavenPublication::class).apply {
-                    from(components[Config.publishingVariant])
-                    groupId = rootProject.group.toString()
-                    artifactId = project.name
-
-                    configurePom()
-                    configureVersion(isReleaseBuild)
-                }
+            publications.maybeCreate(Config.publishingVariant, MavenPublication::class).apply {
+                from(components[Config.publishingVariant])
+                groupId = rootProject.group.toString()
+                configurePom()
+                configureVersion(isReleaseBuild)
             }
+            sonatypeRepository(isReleaseBuild, properties)
         }
         signPublications(isReleaseBuild, properties)
     }
 
+    tasks.withType<AbstractPublishToMaven>().configureEach {
+        dependsOn(tasks.withType<BundleAar>())
+    }
     tasks.withType<Sign>().configureEach {
         dependsOn(tasks.withType<BundleAar>())
     }

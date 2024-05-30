@@ -6,8 +6,6 @@
     "NOTHING_TO_INLINE",
     "TooManyFunctions",
     "ThrowingExceptionsWithoutMessageOrCause",
-    "INVISIBLE_REFERENCE",
-    "INVISIBLE_MEMBER",
 )
 
 package pro.respawn.apiresult

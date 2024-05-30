@@ -21,7 +21,6 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import pro.respawn.apiresult.ApiResult.Error
 import pro.respawn.apiresult.ApiResult.Loading
-import pro.respawn.apiresult.ApiResult.Success
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.jvm.JvmName
@@ -47,7 +46,7 @@ public inline fun <T> Flow<T>.catchExceptions(
 public suspend inline fun <T> SuspendResult(
     context: CoroutineContext = EmptyCoroutineContext,
     noinline block: suspend CoroutineScope.() -> T,
-): ApiResult<T> = withContext(context) { ApiResult { supervisorScope(block) } }
+): ApiResult<T> = withContext(context) { ApiResult(call = { supervisorScope(block) }) }
 
 /**
  * Emits [ApiResult.Loading], then executes [call] and wraps it.
@@ -56,8 +55,8 @@ public suspend inline fun <T> SuspendResult(
 public inline fun <T> ApiResult.Companion.tryFlow(
     crossinline call: suspend () -> T
 ): Flow<ApiResult<T>> = kotlinx.coroutines.flow.flow {
-    emit(Loading)
-    emit(ApiResult { call() })
+    emit(Loading())
+    emit(ApiResult(call = { call() }))
 }
 
 /**
@@ -68,23 +67,23 @@ public inline fun <T> ApiResult.Companion.tryFlow(
 public inline fun <T> ApiResult.Companion.flow(
     crossinline result: suspend () -> ApiResult<T>,
 ): Flow<ApiResult<T>> = kotlinx.coroutines.flow.flow {
-    emit(Loading)
+    emit(Loading())
     emit(result())
 }
 
 /**
  * Emits [Loading] before this flow starts to be collected.
- * Then maps all values to [Success] and catches [Exception]s and maps them to [Error]s
+ * Then maps all results to their values, then catches [Exception]s and maps them to [Error]s
  * @see ApiResult.Companion.flow
  * @see SuspendResult
  */
 public inline fun <T> Flow<T>.asApiResult(): Flow<ApiResult<T>> = this
     .map { it.asResult }
-    .onStart { emit(Loading) }
-    .catchExceptions { emit(Error(it)) }
+    .onStart { emit(ApiResult.Loading()) }
+    .catchExceptions { emit(ApiResult.Error(value = it)) }
 
 /**
- * Maps each [Success] value of [this] flow using [transform]
+ * Maps each success value of [this] flow using [transform]
  */
 public inline fun <T, R> Flow<ApiResult<T>>.mapResults(
     crossinline transform: suspend (T) -> R

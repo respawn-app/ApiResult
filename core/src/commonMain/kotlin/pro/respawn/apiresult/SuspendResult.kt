@@ -80,7 +80,7 @@ public inline fun <T> ApiResult.Companion.flow(
 public inline fun <T> Flow<T>.asApiResult(): Flow<ApiResult<T>> = this
     .map { it.asResult }
     .onStart { emit(ApiResult.Loading()) }
-    .catchExceptions { emit(ApiResult.Error(value = it)) }
+    .catchExceptions { emit(ApiResult.Error(e = it)) }
 
 /**
  * Maps each success value of [this] flow using [transform]

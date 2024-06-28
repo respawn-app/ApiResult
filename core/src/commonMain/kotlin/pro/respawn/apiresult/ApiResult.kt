@@ -70,9 +70,14 @@ public value class ApiResult<out T> @PublishedApi internal constructor(@Publishe
      */
     @JvmInline
     @PublishedApi
-    internal value class Error(@JvmField val e: Exception) {
+    internal value class Error private constructor(@JvmField val e: Exception) {
 
         override fun toString(): String = "ApiResult.Error: message=${e.message} and cause: $e"
+
+        companion object {
+
+            fun create(e: Exception) = Error(e)
+        }
     }
 
     @PublishedApi
@@ -108,7 +113,7 @@ public value class ApiResult<out T> @PublishedApi internal constructor(@Publishe
         /**
          * Create an error [ApiResult] value
          */
-        public inline fun <T> Error(e: Exception): ApiResult<T> = ApiResult(value = ApiResult.Error(e = e))
+        public inline fun <T> Error(e: Exception): ApiResult<T> = ApiResult(value = Error.create(e = e))
 
         /**
          * Create a loading [ApiResult] value
@@ -334,7 +339,7 @@ public inline fun <T> ApiResult<T>.errorOnLoading(
     }
 
     return when (value) {
-        is Loading -> Error<T>(e = exception())
+        is Loading -> Error(e = exception())
         else -> this
     }
 }
@@ -529,10 +534,8 @@ public inline fun <T> ApiResult<T>.recoverIf(
         callsInPlace(condition, InvocationKind.AT_MOST_ONCE)
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    return when {
-        value is Error && condition(value.e) -> block(value.e)
-        else -> ApiResult(value = value)
-    }
+    if (value !is Error || !condition(value.e)) return this
+    return block(value.e)
 }
 
 /**

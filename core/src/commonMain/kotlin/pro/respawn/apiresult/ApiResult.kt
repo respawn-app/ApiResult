@@ -103,12 +103,12 @@ public value class ApiResult<out T> @PublishedApi internal constructor(@Publishe
         /**
          * Create a successful [ApiResult] value
          */
-        public inline fun <T> Success(value: T): ApiResult<T> = ApiResult(value)
+        public inline fun <T> Success(value: T): ApiResult<T> = ApiResult(value = value)
 
         /**
          * Create an error [ApiResult] value
          */
-        public inline fun <T> Error(value: Exception): ApiResult<T> = ApiResult(Error(e = value))
+        public inline fun <T> Error(e: Exception): ApiResult<T> = ApiResult(value = ApiResult.Error(e = e))
 
         /**
          * Create a loading [ApiResult] value
@@ -123,7 +123,8 @@ public value class ApiResult<out T> @PublishedApi internal constructor(@Publishe
          * If you want to directly create a success value of an [Exception], use [Success]
          */
         public inline operator fun <T> invoke(value: T): ApiResult<T> = when (value) {
-            is Exception -> Error(value = value)
+            is Exception -> Error(e = value)
+            is Loading -> Loading()
             else -> Success(value)
         }
 
@@ -135,11 +136,11 @@ public value class ApiResult<out T> @PublishedApi internal constructor(@Publishe
          * [CancellationException]s are rethrown.
          */
         public inline operator fun <T> invoke(call: () -> T): ApiResult<T> = try {
-            Success(call())
+            Success(value = call())
         } catch (e: CancellationException) {
             throw e
         } catch (expected: Exception) {
-            Error(expected)
+            Error(e = expected)
         }
 
         /**
@@ -195,10 +196,15 @@ public inline infix fun <T, R : T> ApiResult<T>.orElse(block: (e: Exception) -> 
 }
 
 /**
- *  If [this] is [Error], returns [defaultValue].
+ *  If [this] is [Error] or [Loading], returns [defaultValue].
  *  @see orElse
  */
-public inline infix fun <T, R : T> ApiResult<T>.or(defaultValue: R): T = orElse { defaultValue }
+public inline infix fun <T, R : T> ApiResult<T>.or(defaultValue: R): T {
+    return when (value) {
+        is Error, is Loading -> defaultValue
+        else -> value as T
+    }
+}
 
 /**
  * @return null if [this] is an [ApiResult.Error] or [ApiResult.Loading], otherwise return self.
@@ -312,7 +318,9 @@ public inline fun <T> ApiResult<T>.errorIf(
         callsInPlace(predicate, InvocationKind.AT_MOST_ONCE)
         callsInPlace(exception, InvocationKind.AT_MOST_ONCE)
     }
-    return if (isSuccess && predicate(value as T)) Error(value = exception()) else this
+    if (!isSuccess) return this
+    if (!predicate(value as T)) return this
+    return Error<T>(e = exception())
 }
 
 /**
@@ -326,7 +334,7 @@ public inline fun <T> ApiResult<T>.errorOnLoading(
     }
 
     return when (value) {
-        is Loading -> Error(value = exception())
+        is Loading -> Error<T>(e = exception())
         else -> this
     }
 }
@@ -352,25 +360,19 @@ public inline infix fun <T, R> ApiResult<T>.map(block: (T) -> R): ApiResult<R> {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    return fold(
-        onSuccess = { Success(value = block(it)) },
-        onError = { Error(value = it) },
-        onLoading = { ApiResult.Loading() }
-    )
+    if (!isSuccess) return this as ApiResult<R>
+    return Success(value = block(value as T))
 }
 
 /**
  * Map the [Success] result using [transform], and if the result is not a success, return [default]
  */
-public inline fun <T, R> ApiResult<T>.mapOrDefault(default: () -> R, transform: (T) -> R): R {
+public inline fun <T, R> ApiResult<T>.mapOrDefault(default: (e: Exception) -> R, transform: (T) -> R): R {
     contract {
         callsInPlace(transform, InvocationKind.AT_MOST_ONCE)
         callsInPlace(default, InvocationKind.AT_MOST_ONCE)
     }
-    return fold(
-        onSuccess = { transform(it) },
-        onError = { default() }
-    )
+    return map(transform).orElse(default)
 }
 
 /**
@@ -379,10 +381,7 @@ public inline fun <T, R> ApiResult<T>.mapOrDefault(default: () -> R, transform: 
 public inline fun <T, R> ApiResult<T>.mapEither(
     success: (T) -> R,
     error: (Exception) -> Exception,
-): ApiResult<R> = fold(
-    onSuccess = { Success(success(it)) },
-    onError = { Error(value = error(it)) }
-)
+): ApiResult<R> = map(success).mapError(error)
 
 /**
  * Maps [Loading] to a [Success], not affecting other states.
@@ -414,7 +413,7 @@ public inline infix fun <reified R : Exception, T> ApiResult<T>.mapError(block: 
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
     return when {
-        value is Error && value.e is R -> Error(value = block(value.e))
+        value is Error && value.e is R -> Error<T>(e = block(value.e))
         else -> this
     }
 }
@@ -427,11 +426,10 @@ public inline fun <T> ApiResult<T>.mapErrorToCause(): ApiResult<T> = mapError { 
 /**
  * Unwrap an ApiResult<ApiResult<T>> to be ApiResult<T>
  */
-public inline fun <T> ApiResult<ApiResult<T>>.unwrap(): ApiResult<T> = fold(
-    onSuccess = { it },
-    onError = { Error(value = it) },
-    onLoading = { ApiResult.Loading() },
-)
+public inline fun <T> ApiResult<ApiResult<T>>.unwrap(): ApiResult<T> {
+    if (!isSuccess) this as ApiResult<T>
+    return (value as ApiResult<T>)
+}
 
 /**
  * Change the type of successful result to [R], also wrapping [block]
@@ -450,17 +448,17 @@ public inline infix fun <T, R> ApiResult<T>.tryMap(
  * @see errorIf
  * @see errorIfEmpty
  */
-public inline fun <T> ApiResult<T?>?.errorOnNull(
+public inline fun <T : Any> ApiResult<T?>?.errorOnNull(
     exception: () -> Exception = { ConditionNotSatisfiedException("Value was null") },
-): ApiResult<T & Any> {
+): ApiResult<T> {
     contract {
         returns() implies (this@errorOnNull != null)
     }
-    return when (this?.value) {
-        is Error -> Error(value = value.e)
+    return when (val r = this?.value) {
+        is Error -> Error<T>(e = r.e)
         is Loading -> ApiResult.Loading()
-        null -> Error(value = exception())
-        else -> ApiResult(value = value)
+        null -> Error<T>(e = exception())
+        else -> Success(value = r as T)
     }
 }
 

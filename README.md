@@ -19,11 +19,13 @@ error handling **on steroids**.
 
 ## Features
 
-* ApiResult is **lightweight**. The library tries to inline operators and reduce allocations where possible.
+* ApiResult is **lightweight**. The library creates no objects, makes no allocations or virtual function resolutions.
+  Most of the code is inlined.
 * ApiResult offers 90+ operators covering most of possible use cases to turn your
   code from imperative and procedural to declarative and functional, which is more readable and extensible.
 * ApiResult defines a contract that you can use in your code. No one will be able to obtain the result of a computation
   without being forced to handle errors at compilation time.
+* The library has 129 tests for 92% operator coverage.
 
 ## Preview
 

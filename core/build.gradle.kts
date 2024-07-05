@@ -15,10 +15,9 @@ dependencies {
 }
 
 mavenPublishing {
-    val properties = localProperties()
     val isReleaseBuild = properties["release"]?.toString().toBoolean()
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
-    signAllPublications()
+    if (isReleaseBuild) signAllPublications()
     coordinates(Config.group, Config.artifact, Config.version(isReleaseBuild))
     pom {
         name = Config.name
@@ -43,6 +42,5 @@ mavenPublishing {
         scm {
             url = Config.scmUrl
         }
-
     }
 }

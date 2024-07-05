@@ -81,7 +81,10 @@ public value class ApiResult<out T> private constructor(@PublishedApi internal v
     }
 
     @PublishedApi
-    internal data object Loading
+    internal data object Loading {
+
+        override fun toString(): String = "ApiResult.Loading"
+    }
 
     /**
      * Whether this is [Success]
@@ -96,10 +99,10 @@ public value class ApiResult<out T> private constructor(@PublishedApi internal v
     /**
      * Whether this is [Loading]
      */
-    public inline val isLoading: Boolean get() = value is Loading
+    public inline val isLoading: Boolean get() = value === Loading
 
     override fun toString(): String = when {
-        value is Error || value is Loading -> value.toString()
+        value is Error || value === Loading -> value.toString()
         else -> "ApiResult.Success: $value"
     }
 
@@ -129,7 +132,6 @@ public value class ApiResult<out T> private constructor(@PublishedApi internal v
          */
         public inline operator fun <T> invoke(value: T): ApiResult<T> = when (value) {
             is Exception -> Error(e = value)
-            is Loading -> Loading()
             else -> Success(value)
         }
 
@@ -365,8 +367,8 @@ public inline infix fun <T, R> ApiResult<T>.map(block: (T) -> R): ApiResult<R> {
     contract {
         callsInPlace(block, InvocationKind.AT_MOST_ONCE)
     }
-    if (!isSuccess) return this as ApiResult<R>
-    return Success(value = block(value as T))
+    if (isSuccess) return Success(value = block(value as T))
+    return this as ApiResult<R>
 }
 
 /**
@@ -431,10 +433,10 @@ public inline fun <T> ApiResult<T>.mapErrorToCause(): ApiResult<T> = mapError { 
 /**
  * Unwrap an ApiResult<ApiResult<T>> to be ApiResult<T>
  */
-public inline fun <T> ApiResult<ApiResult<T>>.unwrap(): ApiResult<T> {
-    if (!isSuccess) this as ApiResult<T>
-    return (value as ApiResult<T>)
-}
+public inline fun <T> ApiResult<ApiResult<T>>.unwrap(): ApiResult<T> = when (value) {
+    is Error, is Loading -> this
+    else -> value
+} as ApiResult<T>
 
 /**
  * Change the type of successful result to [R], also wrapping [block]
@@ -457,7 +459,7 @@ public inline fun <T : Any> ApiResult<T?>?.errorOnNull(
     exception: () -> Exception = { ConditionNotSatisfiedException("Value was null") },
 ): ApiResult<T> {
     contract {
-        returns() implies (this@errorOnNull != null)
+        returnsNotNull()
     }
     return when (val r = this?.value) {
         is Error -> Error(e = r.e)

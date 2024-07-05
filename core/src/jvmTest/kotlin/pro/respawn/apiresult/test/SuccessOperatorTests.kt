@@ -1,9 +1,11 @@
 package pro.respawn.apiresult.test
 
+import io.kotest.assertions.fail
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.shouldBe
 import pro.respawn.apiresult.ApiResult
+import pro.respawn.apiresult.apply
 import pro.respawn.apiresult.cause
 import pro.respawn.apiresult.chain
 import pro.respawn.apiresult.errorIf
@@ -11,6 +13,7 @@ import pro.respawn.apiresult.errorOnLoading
 import pro.respawn.apiresult.errorOnNull
 import pro.respawn.apiresult.errorUnless
 import pro.respawn.apiresult.exceptionOrNull
+import pro.respawn.apiresult.flatMap
 import pro.respawn.apiresult.fold
 import pro.respawn.apiresult.map
 import pro.respawn.apiresult.mapEither
@@ -19,6 +22,7 @@ import pro.respawn.apiresult.mapErrorToCause
 import pro.respawn.apiresult.mapLoading
 import pro.respawn.apiresult.mapOrDefault
 import pro.respawn.apiresult.message
+import pro.respawn.apiresult.nullOnError
 import pro.respawn.apiresult.onError
 import pro.respawn.apiresult.onLoading
 import pro.respawn.apiresult.onSuccess
@@ -87,21 +91,24 @@ class SuccessOperatorTests : FreeSpec({
             result.exceptionOrNull() shouldBe null
         }
         "then fold returns value" {
-            result.fold({ it }, { 0 }) shouldBe value
+            result.fold({ it }, { 0 }, { -1 }) shouldBe value
         }
         "then onError does not call error" {
-            result.onError { throw AssertionError("Called onError") }
+            result.onError { fail("Called onError") }
         }
         "then onSuccess calls success" {
-            var called = false
-            result.onSuccess {
-                it shouldBe value
-                called = true
+            shouldCall {
+                result.onSuccess {
+                    it shouldBe value
+                    markCalled()
+                }
             }
-            called shouldBe true
         }
         "then onLoading does not call loading" {
-            result.onLoading { throw AssertionError("Called onLoading") }
+            result.onLoading { fail("Called onLoading") }
+        }
+        "then nullOnError returns value" {
+            result.nullOnError().orThrow() shouldBe value
         }
         "then errorIf returns same value as received" {
             result.errorIf { false }.isError shouldBe false
@@ -117,8 +124,8 @@ class SuccessOperatorTests : FreeSpec({
         "then requireNotNull returns value" {
             result.requireNotNull().orThrow() shouldBe value
         }
-        "then map returns new value" {
-            result.map { it + 1 }.orThrow() shouldBe value + 1
+        "then map/apply returns new value" {
+            result.apply { this + 1 }.orThrow() shouldBe value + 1
         }
         "then mapOrDefault returns new value" {
             result.mapOrDefault({ 0 }) { it + 1 } shouldBe value + 1
@@ -128,10 +135,10 @@ class SuccessOperatorTests : FreeSpec({
             result.mapEither({ it + 1 }) { mappedError }.orThrow() shouldBe value + 1
         }
         "then mapLoading is not executed" {
-            result.mapLoading { throw AssertionError("Called mapLoading") }
+            result.mapLoading { fail("Called mapLoading") }
         }
         "then mapError is not executed" {
-            result.mapError { throw AssertionError("Called mapError") }
+            result.mapError { fail("Called mapError") }
         }
         "then mapErrorToCause is not executed" {
             result.mapErrorToCause().isError shouldBe false
@@ -139,17 +146,17 @@ class SuccessOperatorTests : FreeSpec({
         "then unwrap returns value" {
             val wrapped = ApiResult(result)
             wrapped.unwrap() shouldBe result
-            wrapped.unwrap().orThrow() shouldBe value
+            wrapped.unwrap().require() shouldBe value
         }
         "then tryMap catches exceptions" {
             val e = IllegalArgumentException()
             result.tryMap { throw e }.exceptionOrNull() shouldBe e
         }
         "then recover does not change value" {
-            result.recover { throw AssertionError("recovered") } shouldBe result
+            result.recover { fail("recovered") } shouldBe result
         }
         "then tryRecover does not change value" {
-            result.tryRecover { throw AssertionError("recovered") } shouldBe result
+            result.tryRecover { fail("recovered") } shouldBe result
         }
         "and given require operator" - {
             "and condition is false" - {
@@ -165,8 +172,8 @@ class SuccessOperatorTests : FreeSpec({
                 }
             }
         }
-        "and recoverIf is not Executed" {
-            result.recoverIf({ true }) { throw AssertionError("Called recoverIf") }
+        "then recoverIf is not Executed" {
+            result.recoverIf({ true }) { fail("Called recoverIf") }
         }
         "and a chain operator" - {
             "and chained is an error" - {
@@ -193,24 +200,24 @@ class SuccessOperatorTests : FreeSpec({
             val e = IllegalArgumentException()
             result.tryChain { throw e }.exceptionOrNull() shouldBe e
         }
-        "and a then operator" - {
+        "and a flatMap operator" - {
             "and then is an error" - {
                 val other = ApiResult.Error<Int>(exception)
                 "then the result is an error" {
-                    result.then { other }.isError shouldBe true
+                    result.flatMap { other }.isError shouldBe true
                 }
             }
             "and then is a success" - {
                 val newValue = 0
                 val other = ApiResult.Success(newValue)
                 "then the value is the new one" {
-                    result.then { other }.orThrow() shouldBe newValue
+                    result.flatMap { other }.orThrow() shouldBe newValue
                 }
             }
             "and then is loading" - {
                 val other = ApiResult.Loading<Int>()
                 "then the result is loading" {
-                    result.then { other }.isLoading shouldBe true
+                    result.flatMap { other }.isLoading shouldBe true
                 }
             }
         }

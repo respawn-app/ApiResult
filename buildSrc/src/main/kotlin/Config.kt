@@ -24,6 +24,7 @@ object Config {
     const val licenseName = "The Apache Software License, Version 2.0"
     const val licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0.txt"
     const val scmUrl = "https://github.com/respawn-app/ApiResult.git"
+    const val name = "ApiResult"
     const val description = """
 ApiResult is a Kotlin Multiplatform declarative error handling framework that is performant, easy to use and
 feature-rich.

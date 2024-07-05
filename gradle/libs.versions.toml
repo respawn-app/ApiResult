@@ -18,6 +18,7 @@ kotlinx-atomicfu = "0.23.1"
 lifecycle = "2.8.2"
 turbine = "1.0.0"
 versionCatalogUpdatePlugin = "0.8.4"
+maven-publish-plugin = "0.29.0"
 
 [libraries]
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "gradleAndroid" }
@@ -58,6 +59,7 @@ unittest = [
 ]
 
 [plugins]
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish-plugin" }
 atomicfu = { id = "kotlinx-atomicfu", version.ref = "kotlinx-atomicfu" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 dependencyAnalysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisPlugin" }

@@ -51,8 +51,9 @@ fun String.toBase64() = Base64.getEncoder().encodeToString(toByteArray())
 
 fun Project.localProperties() = Properties().apply {
     val file = File(rootProject.rootDir.absolutePath, "local.properties")
-    require(file.exists()) { "Please create root local.properties file" }
-    load(FileInputStream(file))
+    if (file.exists()) {
+        load(FileInputStream(file))
+    }
 }
 
 fun stabilityLevel(version: String): Int {
@@ -61,4 +62,9 @@ fun stabilityLevel(version: String): Int {
         if (version.matches(regex)) return index
     }
     return Config.stabilityLevels.size
+}
+
+fun Config.version(isRelease: Boolean) = buildString {
+    append(versionName)
+    if (!isRelease) append("-SNAPSHOT")
 }

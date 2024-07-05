@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("maven-publish")
     signing
 }
 
@@ -17,5 +16,3 @@ kotlin {
 android {
     configureAndroidLibrary(this)
 }
-
-publishMultiplatform()

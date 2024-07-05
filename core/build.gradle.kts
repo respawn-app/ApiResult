@@ -8,4 +8,5 @@ android {
 
 dependencies {
     commonMainApi(libs.kotlin.coroutines.core)
+    jvmTestImplementation(libs.bundles.unittest)
 }

@@ -175,13 +175,12 @@ interface Repository {
 }
 
 val subscriptions: ApiResult<List<Subscription>> = ApiResult {
-    val verificationResult = repo.verifyDevice()
-
     // bang (!) operator throws Errors, equivalent to binding
     // if bang does not throw, the device is verified
-    !verificationResult
+    val verificationResult = !repo.verifyDevice()
 
-    val user: User = !userRepository.getUser() // if bang does not throw, user is logged in
+    // if bang does not throw, user is logged in
+    val user: User = !userRepository.getUser()
 
     !repo.getSubscriptions(user)
 }

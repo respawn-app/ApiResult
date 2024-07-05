@@ -15,7 +15,7 @@ inline fun <T> haveCalled(crossinline block: CallScope.(value: T) -> Unit) = Mat
     )
 }
 
-data class CallScope(private var called: Boolean = false) {
+class CallScope(private var called: Boolean = false) {
 
     val isPass get() = called
 

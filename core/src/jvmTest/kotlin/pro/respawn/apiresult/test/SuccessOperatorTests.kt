@@ -15,7 +15,6 @@ import pro.respawn.apiresult.errorUnless
 import pro.respawn.apiresult.exceptionOrNull
 import pro.respawn.apiresult.flatMap
 import pro.respawn.apiresult.fold
-import pro.respawn.apiresult.map
 import pro.respawn.apiresult.mapEither
 import pro.respawn.apiresult.mapError
 import pro.respawn.apiresult.mapErrorToCause
@@ -36,7 +35,6 @@ import pro.respawn.apiresult.require
 import pro.respawn.apiresult.requireIs
 import pro.respawn.apiresult.requireNotNull
 import pro.respawn.apiresult.stackTrace
-import pro.respawn.apiresult.then
 import pro.respawn.apiresult.tryChain
 import pro.respawn.apiresult.tryMap
 import pro.respawn.apiresult.tryRecover
@@ -193,7 +191,6 @@ class SuccessOperatorTests : FreeSpec({
                 "then the result is loading" {
                     result.chain { other }.isLoading shouldBe true
                 }
-
             }
         }
         "then tryChain catches exceptions" {

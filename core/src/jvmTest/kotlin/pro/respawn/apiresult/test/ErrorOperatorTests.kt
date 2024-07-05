@@ -12,7 +12,6 @@ import pro.respawn.apiresult.cause
 import pro.respawn.apiresult.chain
 import pro.respawn.apiresult.errorIf
 import pro.respawn.apiresult.errorOnLoading
-import pro.respawn.apiresult.errorOnNull
 import pro.respawn.apiresult.errorUnless
 import pro.respawn.apiresult.exceptionOrNull
 import pro.respawn.apiresult.flatMap
@@ -39,7 +38,6 @@ import pro.respawn.apiresult.requireIs
 import pro.respawn.apiresult.requireNotNull
 import pro.respawn.apiresult.rethrow
 import pro.respawn.apiresult.stackTrace
-import pro.respawn.apiresult.then
 import pro.respawn.apiresult.tryChain
 import pro.respawn.apiresult.tryMap
 import pro.respawn.apiresult.tryRecover
@@ -203,7 +201,7 @@ class ErrorOperatorTests : FreeSpec({
         }
         "then chain is not executed" {
             result.chain { fail("chain should not be executed") }
-            }
+        }
         "then tryChain is not executed" {
             result.tryChain { fail("Called tryChain") }
         }

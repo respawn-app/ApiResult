@@ -1,6 +1,5 @@
 package pro.respawn.apiresult.test
 
-import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.FreeSpec
 import io.kotest.matchers.equals.shouldBeEqual
@@ -9,7 +8,6 @@ import io.kotest.matchers.shouldBe
 import pro.respawn.apiresult.ApiResult
 import pro.respawn.apiresult.orThrow
 import pro.respawn.apiresult.runResulting
-import pro.respawn.apiresult.tryRecoverIf
 import kotlin.coroutines.cancellation.CancellationException
 
 class MiscOperatorTests : FreeSpec({

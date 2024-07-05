@@ -206,11 +206,9 @@ public inline infix fun <T, R : T> ApiResult<T>.orElse(block: (e: Exception) -> 
  *  If [this] is [Error] or [Loading], returns [defaultValue].
  *  @see orElse
  */
-public inline infix fun <T, R : T> ApiResult<T>.or(defaultValue: R): T {
-    return when (value) {
-        is Error, is Loading -> defaultValue
-        else -> value as T
-    }
+public inline infix fun <T, R : T> ApiResult<T>.or(defaultValue: R): T = when (value) {
+    is Error, is Loading -> defaultValue
+    else -> value as T
 }
 
 /**

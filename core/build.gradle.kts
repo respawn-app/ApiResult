@@ -1,3 +1,4 @@
+import Config.namespace
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
@@ -18,7 +19,7 @@ mavenPublishing {
     val isReleaseBuild = properties["release"]?.toString().toBoolean()
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
     if (isReleaseBuild) signAllPublications()
-    coordinates(Config.group, Config.artifact, Config.version(isReleaseBuild))
+    coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
     pom {
         name = Config.name
         description = Config.description

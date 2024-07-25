@@ -27,6 +27,16 @@ plugins {
 allprojects {
     group = Config.artifactId
     version = Config.versionName
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(Config.jvmTarget)
+            freeCompilerArgs.apply { addAll(Config.jvmCompilerArgs) }
+            optIn.addAll(Config.optIns.map { "-opt-in=$it" })
+        }
+    }
+}
+
+subprojects {
     plugins.withType<ComposeCompilerGradleSubplugin>().configureEach {
         the<ComposeCompilerGradlePluginExtension>().apply {
             enableIntrinsicRemember = true
@@ -72,17 +82,9 @@ allprojects {
             }
         }
     }
-    tasks.withType<KotlinCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(Config.jvmTarget)
-            freeCompilerArgs.apply { addAll(Config.jvmCompilerArgs) }
-            optIn.addAll(Config.optIns.map { "-opt-in=$it" })
-        }
-    }
-}
 
-subprojects {
     if (name == "app") return@subprojects
+
     apply(plugin = rootProject.libs.plugins.dokka.id)
 
     dependencies {

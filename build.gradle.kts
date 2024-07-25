@@ -50,35 +50,33 @@ subprojects {
             }
         }
     }
-    plugins.withType<MavenPublishPlugin>().configureEach {
-        the<MavenPublishBaseExtension>().apply {
-            val isReleaseBuild = properties["release"]?.toString().toBoolean()
-            publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
-            if (isReleaseBuild) signAllPublications()
-            coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
-            pom {
-                name = Config.name
-                description = Config.description
-                url = Config.url
-                licenses {
-                    license {
-                        name = Config.licenseName
-                        url = Config.licenseUrl
-                        distribution = Config.licenseUrl
-                    }
+    extensions.findByType<MavenPublishBaseExtension>()?.apply {
+        val isReleaseBuild = properties["release"]?.toString().toBoolean()
+        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
+        if (isReleaseBuild) signAllPublications()
+        coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
+        pom {
+            name = Config.name
+            description = Config.description
+            url = Config.url
+            licenses {
+                license {
+                    name = Config.licenseName
+                    url = Config.licenseUrl
+                    distribution = Config.licenseUrl
                 }
-                developers {
-                    developer {
-                        id = Config.vendorId
-                        name = Config.vendorName
-                        url = Config.developerUrl
-                        email = Config.supportEmail
-                        organizationUrl = Config.developerUrl
-                    }
+            }
+            developers {
+                developer {
+                    id = Config.vendorId
+                    name = Config.vendorName
+                    url = Config.developerUrl
+                    email = Config.supportEmail
+                    organizationUrl = Config.developerUrl
                 }
-                scm {
-                    url = Config.scmUrl
-                }
+            }
+            scm {
+                url = Config.scmUrl
             }
         }
     }

@@ -43,8 +43,8 @@ subprojects {
             }
         }
     }
-    plugins.withType<MavenPublishPlugin>().configureEach {
-        the<MavenPublishBaseExtension>().apply {
+    afterEvaluate {
+        extensions.findByType<MavenPublishBaseExtension>()?.run {
             val isReleaseBuild = properties["release"]?.toString().toBoolean()
             publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
             if (isReleaseBuild) signAllPublications()

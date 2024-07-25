@@ -1,4 +1,5 @@
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
+import com.vanniktech.maven.publish.MavenPublishPlugin
 import com.vanniktech.maven.publish.SonatypeHost
 import nl.littlerobots.vcu.plugin.versionCatalogUpdate
 import nl.littlerobots.vcu.plugin.versionSelector
@@ -26,13 +27,6 @@ plugins {
 allprojects {
     group = Config.artifactId
     version = Config.versionName
-    tasks.withType<KotlinCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(Config.jvmTarget)
-            freeCompilerArgs.apply { addAll(Config.jvmCompilerArgs) }
-            optIn.addAll(Config.optIns.map { "-opt-in=$it" })
-        }
-    }
 }
 
 subprojects {
@@ -49,33 +43,48 @@ subprojects {
             }
         }
     }
-    extensions.findByType<MavenPublishBaseExtension>()?.apply {
-        val isReleaseBuild = properties["release"]?.toString().toBoolean()
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
-        if (isReleaseBuild) signAllPublications()
-        coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
-        pom {
-            name = Config.name
-            description = Config.description
-            url = Config.url
-            licenses {
-                license {
-                    name = Config.licenseName
-                    url = Config.licenseUrl
-                    distribution = Config.licenseUrl
+    plugins.withType<MavenPublishPlugin>().configureEach {
+        the<MavenPublishBaseExtension>().apply {
+            val isReleaseBuild = properties["release"]?.toString().toBoolean()
+            publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
+            if (isReleaseBuild) signAllPublications()
+            coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
+            pom {
+                name = Config.name
+                description = Config.description
+                url = Config.url
+                licenses {
+                    license {
+                        name = Config.licenseName
+                        url = Config.licenseUrl
+                        distribution = Config.licenseUrl
+                    }
+                }
+                developers {
+                    developer {
+                        id = Config.vendorId
+                        name = Config.vendorName
+                        url = Config.developerUrl
+                        email = Config.supportEmail
+                        organizationUrl = Config.developerUrl
+                    }
+                }
+                scm {
+                    url = Config.scmUrl
                 }
             }
-            developers {
-                developer {
-                    id = Config.vendorId
-                    name = Config.vendorName
-                    url = Config.developerUrl
-                    email = Config.supportEmail
-                    organizationUrl = Config.developerUrl
-                }
-            }
-            scm {
-                url = Config.scmUrl
+        }
+    }
+    tasks {
+        withType<Test>().configureEach {
+            useJUnitPlatform()
+            filter { isFailOnNoMatchingTests = true }
+        }
+        withType<KotlinCompile>().configureEach {
+            compilerOptions {
+                jvmTarget.set(Config.jvmTarget)
+                freeCompilerArgs.apply { addAll(Config.jvmCompilerArgs) }
+                optIn.addAll(Config.optIns.map { "-opt-in=$it" })
             }
         }
     }
@@ -86,22 +95,6 @@ subprojects {
 
     dependencies {
         dokkaPlugin(rootProject.libs.dokka.android)
-    }
-
-    tasks {
-        withType<Test>().configureEach {
-            useJUnitPlatform()
-            filter { isFailOnNoMatchingTests = true }
-        }
-        register<org.gradle.jvm.tasks.Jar>("dokkaJavadocJar") {
-            dependsOn(dokkaJavadoc)
-            from(dokkaJavadoc.flatMap { it.outputDirectory })
-            archiveClassifier.set("javadoc")
-        }
-
-        register<org.gradle.jvm.tasks.Jar>("emptyJavadocJar") {
-            archiveClassifier.set("javadoc")
-        }
     }
 }
 

@@ -1,3 +1,6 @@
+import com.vanniktech.maven.publish.MavenPublishBaseExtension
+import com.vanniktech.maven.publish.MavenPublishPlugin
+import com.vanniktech.maven.publish.SonatypeHost
 import nl.littlerobots.vcu.plugin.versionCatalogUpdate
 import nl.littlerobots.vcu.plugin.versionSelector
 import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
@@ -14,6 +17,7 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.atomicfu)
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.maven.publish) apply false
     // plugins already on a classpath (conventions)
     // alias(libs.plugins.androidApplication) apply false
     // alias(libs.plugins.androidLibrary) apply false
@@ -33,6 +37,38 @@ allprojects {
                 val metricsDir = layout.buildDirectory.dir("compose_metrics")
                 metricsDestination = metricsDir
                 reportsDestination = metricsDir
+            }
+        }
+    }
+    plugins.withType<MavenPublishPlugin>().configureEach {
+        the<MavenPublishBaseExtension>().apply {
+            val isReleaseBuild = properties["release"]?.toString().toBoolean()
+            publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
+            if (isReleaseBuild) signAllPublications()
+            coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
+            pom {
+                name = Config.name
+                description = Config.description
+                url = Config.url
+                licenses {
+                    license {
+                        name = Config.licenseName
+                        url = Config.licenseUrl
+                        distribution = Config.licenseUrl
+                    }
+                }
+                developers {
+                    developer {
+                        id = Config.vendorId
+                        name = Config.vendorName
+                        url = Config.developerUrl
+                        email = Config.supportEmail
+                        organizationUrl = Config.developerUrl
+                    }
+                }
+                scm {
+                    url = Config.scmUrl
+                }
             }
         }
     }

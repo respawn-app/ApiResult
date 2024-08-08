@@ -122,7 +122,7 @@ versionCatalogUpdate {
 }
 
 atomicfu {
-    dependenciesVersion = libs.versions.kotlinx.atomicfu.get()
+    dependenciesVersion = libs.versions.atomicfu.get()
     transformJvm = false
     jvmVariant = "VH"
     transformJs = false

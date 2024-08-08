@@ -35,7 +35,7 @@ jobs:
           cache: 'gradle'
 
       - name: Validate gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
+        uses: gradle/actions/wrapper-validation@v4
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -51,7 +51,7 @@ jobs:
         run: ./gradlew publishToMavenCentral --no-configuration-cache
 
       - name: Generate Changelog
-        uses: mikepenz/release-changelog-builder-action@v4
+        uses: mikepenz/release-changelog-builder-action@v5
         id: build_changelog
         with:
           commitMode: true

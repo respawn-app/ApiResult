@@ -1,5 +1,5 @@
 [versions]
-compose = "1.6.10"
+compose = "1.7.0-beta07"
 compose-activity = "1.9.1"
 compose-material3 = "1.3.0-beta05"
 composeDetektPlugin = "1.3.0"
@@ -9,12 +9,12 @@ dependencyAnalysisPlugin = "1.32.0"
 detekt = "1.23.6"
 detektFormattingPlugin = "1.23.6"
 dokka = "1.9.20"
-gradleAndroid = "8.6.0-beta02"
+gradleAndroid = "8.6.0-rc01"
 gradleDoctorPlugin = "0.10.0"
 kotest = "5.9.1"
 # @pin
-kotlin = "2.0.0"
-kotlinx-atomicfu = "0.23.1"
+kotlin = "2.0.10"
+atomicfu = "0.25.0"
 lifecycle = "2.8.4"
 maven-publish-plugin = "0.29.0"
 turbine = "1.0.0"
@@ -59,7 +59,7 @@ unittest = [
 ]
 
 [plugins]
-atomicfu = { id = "kotlinx-atomicfu", version.ref = "kotlinx-atomicfu" }
+atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "atomicfu" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 dependencyAnalysis = { id = "com.autonomousapps.dependency-analysis", version.ref = "dependencyAnalysisPlugin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

@@ -53,17 +53,19 @@ public inline infix fun <T : Iterable<R>, R> ApiResult<T>.ifEmpty(
 /**
  * Makes [this] an [error] if the collection is empty.
  */
+@Suppress("ThrowingExceptionsWithoutMessageOrCause") // fp
 public inline fun <T, R : Iterable<T>> ApiResult<R>.errorIfEmpty(
     exception: () -> Exception = { ConditionNotSatisfiedException("Collection was empty") },
-): ApiResult<R> = errorIf(exception) { it.none() }
+): ApiResult<R> = errorIf({ exception() }) { it.none() }
 
 /**
  * Makes [this] an [error] if the collection is empty.
  */
 @JvmName("sequenceErrorIfEmpty")
+@Suppress("ThrowingExceptionsWithoutMessageOrCause") // fp
 public inline fun <T, R : Sequence<T>> ApiResult<R>.errorIfEmpty(
     exception: () -> Exception = { ConditionNotSatisfiedException("Sequence was empty") },
-): ApiResult<R> = errorIf(exception) { it.none() }
+): ApiResult<R> = errorIf({ exception() }) { it.none() }
 
 /**
  * Executes [ApiResult.map] on each value of the collection
@@ -147,13 +149,15 @@ public inline fun <T> Sequence<ApiResult<T>>.filterSuccesses(): Sequence<T> = ma
  * Filters all null values of results
  */
 public inline fun <T> Iterable<ApiResult<T?>>.filterNulls(): List<ApiResult<T & Any>> =
-    filter { !it.isSuccess || it.value != null }.mapResults { it!! }
+    asSequence().filterNulls().toList()
 
 /**
  * Filters all null values of results
  */
 public inline fun <T> Sequence<ApiResult<T?>>.filterNulls(): Sequence<ApiResult<T & Any>> =
     filter { !it.isSuccess || it.value != null }.mapResults { it!! }
+
+// TODO: Not possible to provide `vararg` overloads due to https://youtrack.jetbrains.com/issue/KT-33565
 
 /**
  * Merges all results into a single [List], or if any has failed, returns [Error].
@@ -171,10 +175,7 @@ public inline fun <T> merge(results: Iterable<ApiResult<T>>): ApiResult<List<T>>
  */
 public inline fun <T> ApiResult<T>.merge(
     results: Iterable<ApiResult<T>>
-): ApiResult<List<T>> = sequence {
-    yield(this@merge)
-    yieldAll(results)
-}.asIterable().merge()
+): ApiResult<List<T>> = sequenceOf(this@merge).plus(results).asIterable().merge()
 
 /**
  * Returns a list of only successful values, discarding any errors

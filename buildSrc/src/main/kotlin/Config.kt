@@ -25,6 +25,7 @@ object Config {
     const val licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0.txt"
     const val scmUrl = "https://github.com/respawn-app/ApiResult.git"
     const val name = "ApiResult"
+
     @Suppress("MaxLineLength")
     const val description = """ApiResult is a Kotlin Multiplatform declarative error handling library. Just like Arrow's Either, but without the complexity."""
     const val supportEmail = "hello@respawn.pro"
@@ -67,7 +68,6 @@ object Config {
         add("-Xlambdas=indy")
         add("-Xjdk-release=${jvmTarget.target}")
     }
-
 
     // android
     const val namespace = artifactId

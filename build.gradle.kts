@@ -1,23 +1,28 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
+import com.vanniktech.maven.publish.MavenPublishBasePlugin
 import com.vanniktech.maven.publish.SonatypeHost
 import nl.littlerobots.vcu.plugin.versionCatalogUpdate
 import nl.littlerobots.vcu.plugin.versionSelector
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginExtension
 import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradleSubplugin
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.gradleDoctor)
     alias(libs.plugins.version.catalog.update)
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.atomicfu)
+    // alias(libs.plugins.atomicfu)
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.maven.publish) apply false
+    dokkaDocumentation
     // plugins already on a classpath (conventions)
+    // alias(libs.plugins.dokka) apply false
     // alias(libs.plugins.androidApplication) apply false
     // alias(libs.plugins.androidLibrary) apply false
     // alias(libs.plugins.kotlinMultiplatform) apply false
@@ -31,10 +36,8 @@ allprojects {
 subprojects {
     plugins.withType<ComposeCompilerGradleSubplugin>().configureEach {
         the<ComposeCompilerGradlePluginExtension>().apply {
-            enableIntrinsicRemember = true
-            enableNonSkippingGroupOptimization = true
-            enableStrongSkippingMode = true
-            stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_definitions.txt")
+            featureFlags.addAll(ComposeFeatureFlag.OptimizeNonSkippingGroups)
+            stabilityConfigurationFiles.add(rootProject.layout.projectDirectory.file("stability_definitions.txt"))
             if (properties["enableComposeCompilerReports"] == "true") {
                 val metricsDir = layout.buildDirectory.dir("compose_metrics")
                 metricsDestination = metricsDir
@@ -42,9 +45,16 @@ subprojects {
             }
         }
     }
-    afterEvaluate {
-        extensions.findByType<MavenPublishBaseExtension>()?.run {
+    plugins.withType<MavenPublishBasePlugin> {
+        the<MavenPublishBaseExtension>().apply {
             val isReleaseBuild = properties["release"]?.toString().toBoolean()
+            configure(
+                KotlinMultiplatform(
+                    javadocJar = JavadocJar.Empty(),
+                    sourcesJar = true,
+                    androidVariantsToPublish = listOf("release"),
+                )
+            )
             publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
             if (isReleaseBuild) signAllPublications()
             coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
@@ -79,21 +89,6 @@ subprojects {
             useJUnitPlatform()
             filter { isFailOnNoMatchingTests = true }
         }
-        withType<KotlinCompile>().configureEach {
-            compilerOptions {
-                jvmTarget.set(Config.jvmTarget)
-                freeCompilerArgs.apply { addAll(Config.jvmCompilerArgs) }
-                optIn.addAll(Config.optIns.map { "-opt-in=$it" })
-            }
-        }
-    }
-
-    if (name == "app") return@subprojects
-
-    apply(plugin = rootProject.libs.plugins.dokka.id)
-
-    dependencies {
-        dokkaPlugin(rootProject.libs.dokka.android)
     }
 }
 
@@ -121,12 +116,10 @@ versionCatalogUpdate {
     }
 }
 
-atomicfu {
-    dependenciesVersion = libs.versions.atomicfu.get()
-    transformJvm = false
-    jvmVariant = "VH"
-    transformJs = false
-}
+// atomicfu {
+//     dependenciesVersion = libs.versions.atomicfu.get()
+//     jvmVariant = "VH"
+// }
 
 tasks {
     withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
@@ -163,5 +156,16 @@ rootProject.plugins.withType<YarnPlugin>().configureEach {
         yarnLockMismatchReport = YarnLockMismatchReport.WARNING // NONE | FAIL | FAIL_AFTER_BUILD
         reportNewYarnLock = true
         yarnLockAutoReplace = true
+    }
+}
+
+dependencies {
+    detektPlugins(rootProject.libs.detekt.formatting)
+    detektPlugins(rootProject.libs.detekt.compose)
+    detektPlugins(rootProject.libs.detekt.libraries)
+    projects.run {
+        listOf(
+            core,
+        ).forEach { dokka(it) }
     }
 }

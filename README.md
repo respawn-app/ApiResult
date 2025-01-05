@@ -17,20 +17,25 @@ ApiResult is [Railway Programming](https://proandroiddev.com/railway-oriented-pr
 functional
 error handling **on steroids**.
 
-## Features
+## Why use a library instead of try/catch?
 
-* ApiResult is **lightweight**. The library creates no objects, makes no allocations or virtual function resolutions.
-  Most of the code is inlined.
-* ApiResult offers 90+ operators covering most of possible use cases to turn your
+Exceptions in Kotlin are **unchecked**. 
+Each time you call a function, it can throw and crash you app. 
+With ApiResult, you will never have this problem again.
+
+* ApiResult **forces** your code users to handle errors. Forget about unhandled exceptions and unexpected crashes.
+* ApiResult is **lightweight**. The library creates no objects and has ~0 performance impact.
+* Use 90+ operators covering most of possible use cases to turn your
   code from imperative and procedural to declarative and functional, which is more readable and extensible.
-* ApiResult defines a contract that you can use in your code. No one will be able to obtain the result of a computation
-  without being forced to handle errors at compilation time.
-* The library has 129 tests for 92% operator coverage.
+* Core library has **no dependencies**. No need to worry about unexpected junk in your codebase.
+* This isn't like Arrow, where with a monad you get a bunch of extra black magic. This framework focuses on **error handling** only.
+* ApiResult is fully compatible with Exceptions and Coroutines. Just wrap a call and it will work.
+* The library has 140+ tests for 92% operator coverage. Expect long-term support and stability.
 
-## Preview
+## How do I use it?
 
 ```kotlin
-// wrap a result of a computation and expose the result
+// wrap a result of any computation and expose the result
 class BillingRepository(private val api: RestApi) {
 
     suspend fun getSubscriptions() = ApiResult {
@@ -38,18 +43,14 @@ class BillingRepository(private val api: RestApi) {
     } // -> ApiResult<List<Subscription>?>
 }
 
-// ----- 
-
 // obtain and handle the result in the client code
-val repo = BillingRepository( /* ... */)
-
 fun onClickVerify() {
-    val state: SubscriptionState = repo.getSubscriptions()
+    val state: SubscriptionState = billingRepository.getSubscriptions()
         .errorOnNull() // map nulls to error states with compile-time safety
         .recover<NotSignedInException, _> { emptyList() } // recover from some or all errors
         .require { securityRepository.isDeviceTrusted() } // conditionally fail the chain
         .mapValues(::SubscriptionModel) // map list items
-        .filter { it.isPurchased } // filter values
+        .filter { it.isPurchased } // filter
         .mapError<NetworkException, _, _> { e -> BillingException(cause = e) } // map exceptions
         .then { validateSubscriptions(it) } // execute a computation and continue with its result, propagating errors
         .chain { updateGracePeriod(it) } // execute another computation, and if it fails, stop the chain
@@ -92,7 +93,7 @@ Ready to try? Start with reading the [Quickstart Guide](https://opensource.respa
 ## License
 
 ```
-   Copyright 2022-2024 Respawn Team and contributors
+   Copyright 2022-2025 Respawn Team and contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

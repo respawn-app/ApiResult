@@ -52,7 +52,6 @@ class ErrorOperatorTests : FreeSpec({
 
     "given success value" - {
         val result = ApiResult.Error<Int>(e = exception)
-
         "then isSuccess should be false" {
             result.isSuccess shouldBe false
         }
@@ -212,7 +211,7 @@ class ErrorOperatorTests : FreeSpec({
                     row(ApiResult.Success(value)),
                     row(ApiResult.Loading()),
                 ) { other ->
-                    "for value $other" - {
+                    "for value $other" {
                         result.flatMap { other } shouldBe result
                     }
                 }
@@ -221,7 +220,7 @@ class ErrorOperatorTests : FreeSpec({
         "then unit does not do anything" {
             result.unit() shouldBe result
         }
-        "then requireIs returns error" - {
+        "then requireIs returns error" {
             result.requireIs<Int, _>() shouldBe result
         }
     }

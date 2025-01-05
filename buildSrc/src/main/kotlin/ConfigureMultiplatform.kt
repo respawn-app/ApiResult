@@ -1,14 +1,14 @@
-@file:Suppress("MissingPackageDeclaration", "unused", "UndocumentedPublicFunction", "LongMethod")
+@file:Suppress("MissingPackageDeclaration", "unused", "UndocumentedPublicFunction", "LongMethod", "UnusedImports")
 
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getValue
 import org.gradle.kotlin.dsl.getting
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
-@OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
+@OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
 fun Project.configureMultiplatform(
     ext: KotlinMultiplatformExtension,
     jvm: Boolean = true,
@@ -22,12 +22,19 @@ fun Project.configureMultiplatform(
     windows: Boolean = true,
     wasmJs: Boolean = true,
     wasmWasi: Boolean = true,
+    explicitApi: Boolean = true,
     configure: KotlinHierarchyBuilder.Root.() -> Unit = {},
 ) = ext.apply {
     val libs by versionCatalog
-    explicitApi()
+    if (explicitApi) explicitApi()
     applyDefaultHierarchyTemplate(configure)
     withSourcesJar(true)
+    compilerOptions {
+        extraWarnings.set(true)
+        freeCompilerArgs.addAll(Config.compilerArgs)
+        optIn.addAll(Config.optIns)
+        progressiveMode.set(true)
+    }
 
     if (linux) {
         linuxX64()
@@ -54,10 +61,19 @@ fun Project.configureMultiplatform(
     }
 
     if (android) androidTarget {
-        publishLibraryVariants("release")
+        publishLibraryVariants(Config.publishingVariant)
+        compilerOptions {
+            jvmTarget.set(Config.jvmTarget)
+            freeCompilerArgs.addAll(Config.jvmCompilerArgs)
+        }
     }
 
-    if (jvm) jvm()
+    if (jvm) jvm {
+        compilerOptions {
+            jvmTarget.set(Config.jvmTarget)
+            freeCompilerArgs.addAll(Config.jvmCompilerArgs)
+        }
+    }
 
     sequence {
         if (iOs) {

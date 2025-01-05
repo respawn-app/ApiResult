@@ -126,12 +126,10 @@ class LoadingOperatorTests : FreeSpec({
             result.requireNotNull() shouldBe result
         }
         "then map returns the same value" {
-            shouldNotCall {
-                result.map {
-                    it + 1
-                    markCalled()
-                } shouldBe result
-            }
+            result.map {
+                fail("Called map")
+                it + 1
+            } shouldBe result
         }
         "then mapOrDefault returns new value" {
             val default = 0

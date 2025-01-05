@@ -11,6 +11,7 @@ package pro.respawn.apiresult
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.catch
@@ -46,7 +47,10 @@ public inline fun <T> Flow<T>.catchExceptions(
 public suspend inline fun <T> SuspendResult(
     context: CoroutineContext = EmptyCoroutineContext,
     noinline block: suspend CoroutineScope.() -> T,
-): ApiResult<T> = withContext(context) { ApiResult(call = { supervisorScope(block) }) }
+): ApiResult<T> {
+    if (context === EmptyCoroutineContext) return ApiResult(call = { coroutineScope(block) })
+    return ApiResult(call = { withContext(context, block) })
+}
 
 /**
  * Emits [ApiResult.Loading], then executes [call] and wraps it.

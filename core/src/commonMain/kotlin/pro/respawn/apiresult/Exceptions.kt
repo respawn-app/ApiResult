@@ -13,6 +13,6 @@ public class NotFinishedException(
 /**
  * Exception representing unsatisfied condition when using [errorIf]
  */
-public class ConditionNotSatisfiedException(
+public open class ConditionNotSatisfiedException(
     message: String? = "ApiResult condition was not satisfied",
 ) : IllegalArgumentException(message)

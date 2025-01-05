@@ -13,6 +13,7 @@ dokka {
     moduleVersion = project.version.toString()
     pluginsConfiguration.html {
         footerMessage = "© ${Config.vendorName}"
+        customAssets.from(rootDir.resolve("docs/static/icon-512-maskable.png"))
         homepageLink = Config.url
     }
     dokkaPublications.configureEach {

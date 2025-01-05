@@ -28,8 +28,3 @@ inline infix fun <T> T.shouldCall(crossinline block: CallScope.(value: T) -> Uni
     this should haveCalled(block)
     return this
 }
-
-inline infix fun <T> T.shouldNotCall(crossinline block: CallScope.(value: T) -> Unit): T {
-    this shouldNot haveCalled(block)
-    return this
-}

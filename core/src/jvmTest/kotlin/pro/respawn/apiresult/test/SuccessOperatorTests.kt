@@ -112,6 +112,15 @@ class SuccessOperatorTests : FreeSpec({
             result.errorIf { false }.isError shouldBe false
             result.errorIf { true }.isError shouldBe true
         }
+        "then errorIf provides the success value" {
+            result.shouldCall {
+                it.errorIf {
+                    it shouldBe value
+                    markCalled()
+                    false
+                }
+            }
+        }
         "then errorUnless returns the opposite value" {
             result.errorUnless { true }.isError shouldBe false
             result.errorUnless { false }.isError shouldBe true

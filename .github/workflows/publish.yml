@@ -55,9 +55,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-konan-
 
-      - name: Assemble android sample
-        run: ./gradlew :app:assembleRelease
-
       - name: Publish to sonatype
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
@@ -81,7 +78,6 @@ jobs:
           draft: true
           artifactErrorsFailBuild: true
           prerelease: false
-          artifacts: app/build/outputs/apk/release/*
           body: ${{steps.build_changelog.outputs.changelog}}
           tag: ${{ inputs.tag != '' && inputs.tag || github.ref_name }}
         env:

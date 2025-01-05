@@ -3,7 +3,6 @@ package pro.respawn.apiresult.test
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
-import io.kotest.matchers.shouldNot
 
 inline fun <T> haveCalled(crossinline block: CallScope.(value: T) -> Unit) = Matcher<T> {
     val scope = CallScope()

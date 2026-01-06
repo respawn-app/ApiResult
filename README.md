@@ -93,7 +93,7 @@ Ready to try? Start with reading the [Quickstart Guide](https://opensource.respa
 ## License
 
 ```
-   Copyright 2022-2025 Respawn Team and contributors
+   Copyright 2022-2026 Respawn Team and contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

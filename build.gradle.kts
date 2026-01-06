@@ -2,7 +2,6 @@ import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinMultiplatform
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import com.vanniktech.maven.publish.MavenPublishBasePlugin
-import com.vanniktech.maven.publish.SonatypeHost
 import nl.littlerobots.vcu.plugin.versionCatalogUpdate
 import nl.littlerobots.vcu.plugin.versionSelector
 import org.gradle.kotlin.dsl.withType
@@ -48,14 +47,8 @@ subprojects {
     plugins.withType<MavenPublishBasePlugin> {
         the<MavenPublishBaseExtension>().apply {
             val isReleaseBuild = properties["release"]?.toString().toBoolean()
-            configure(
-                KotlinMultiplatform(
-                    javadocJar = JavadocJar.Empty(),
-                    sourcesJar = true,
-                    androidVariantsToPublish = listOf("release"),
-                )
-            )
-            publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, false)
+            configure(KotlinMultiplatform(javadocJar = JavadocJar.Empty(), sourcesJar = true))
+            publishToMavenCentral()
             if (isReleaseBuild) signAllPublications()
             coordinates(Config.artifactId, name, Config.version(isReleaseBuild))
             pom {
@@ -111,8 +104,6 @@ versionCatalogUpdate {
 
     keep {
         keepUnusedVersions = true
-        keepUnusedLibraries = true
-        keepUnusedPlugins = true
     }
 }
 

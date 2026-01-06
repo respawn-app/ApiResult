@@ -54,16 +54,12 @@ object Config {
     val compilerArgs = listOf(
         "-Xbackend-threads=0", // parallel IR compilation
         "-Xexpect-actual-classes",
-        "-Xwasm-use-new-exception-proposal",
         "-Xconsistent-data-class-copy-visibility",
-        "-Xsuppress-warning=NOTHING_TO_INLINE",
-        "-Xsuppress-warning=UNUSED_ANONYMOUS_PARAMETER",
-        "-Xwasm-debugger-custom-formatters"
+        "-Xwarning-level=NOTHING_TO_INLINE:disabled",
+        "-Xwarning-level=UNUSED_ANONYMOUS_PARAMETER:disabled"
     )
     val jvmCompilerArgs = buildList {
-        addAll(compilerArgs)
-        add("-Xjvm-default=all") // enable all jvm optimizations
-        add("-Xcontext-receivers")
+        add("-jvm-default=no-compatibility") // enable all jvm optimizations
         add("-Xstring-concat=inline")
         add("-Xlambdas=indy")
         add("-Xjdk-release=${jvmTarget.target}")

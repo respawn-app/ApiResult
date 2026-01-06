@@ -50,7 +50,7 @@ fun Project.configureMultiplatform(
     }
 
     if (wasmJs) wasmJs {
-        moduleName = this@configureMultiplatform.name
+        outputModuleName.set(this@configureMultiplatform.name)
         nodejs()
         browser()
         binaries.library()
@@ -60,6 +60,7 @@ fun Project.configureMultiplatform(
         nodejs()
     }
 
+    @Suppress("DEPRECATION")
     if (android) androidTarget {
         publishLibraryVariants(Config.publishingVariant)
         compilerOptions {

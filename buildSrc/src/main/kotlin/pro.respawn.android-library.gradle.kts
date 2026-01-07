@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
     kotlin("android")
     id("com.android.library")
@@ -5,12 +7,12 @@ plugins {
 
 kotlin {
     explicitApi()
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        jvmTarget.set(Config.jvmTarget)
+    }
 }
 
 android {
     configureAndroidLibrary(this)
-
-    kotlinOptions {
-        jvmTarget = Config.jvmTarget.target
-    }
 }

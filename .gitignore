@@ -160,6 +160,7 @@ hs_err_pid*
 /app/debug/output-metadata.json
 /.idea/deploymentTargetDropDown.xml
 /.idea/other.xml
+/.kotlin/
 
 ### Custom rules
 .firebase-service-account.json

@@ -1,8 +1,17 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
     id("com.android.application")
     kotlin("android")
     id("kotlin-parcelize")
     alias(libs.plugins.compose.compiler)
+}
+
+kotlin {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        jvmTarget.set(Config.jvmTarget)
+    }
 }
 
 android {
@@ -21,9 +30,6 @@ android {
     buildFeatures {
         buildConfig = true
         compose = true
-    }
-    kotlinOptions {
-        jvmTarget = Config.jvmTarget.target
     }
 }
 

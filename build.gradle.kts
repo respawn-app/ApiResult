@@ -80,7 +80,12 @@ subprojects {
     tasks {
         withType<Test>().configureEach {
             useJUnitPlatform()
-            filter { isFailOnNoMatchingTests = true }
+            val isAndroidUnitTest = name.contains("UnitTest")
+            // Android unit test tasks can exist without sources; don't fail those on empty discovery.
+            filter { isFailOnNoMatchingTests = !isAndroidUnitTest }
+            if (isAndroidUnitTest) {
+                failOnNoDiscoveredTests = false
+            }
         }
     }
 }
